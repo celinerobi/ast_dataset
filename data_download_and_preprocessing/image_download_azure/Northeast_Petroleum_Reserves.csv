@@ -1,0 +1,7 @@
+﻿X,Y,FID,Site_Name,Company,State,PADD,HeatingOil,Other_Stor,Longitude,Latitude,Source
+-74.21281,40.58788,1,Carteret,Kinder Morgan Liq Terminals LLC,NJ,1,0,200,-74.21281,40.58788,EIA
+-74.2437,40.562,2,Port Reading,Buckeye Terminals LLC,NJ,1,300,0,-74.2437,40.562,EIA
+-74.287,40.5139,3,Raritan Bay,Buckeye Terminals LLC,NJ,1,0,500,-74.287,40.5139,EIA
+-71.0069,42.3993,4,Revere,Global Companies LLC,MA,1,400,200,-71.0069,42.3993,EIA
+-70.2861,43.6369,5,Sourth Portland,South Portland Terminal LLC,ME,1,0,99,-70.2861,43.6369,EIA
+-72.0764,41.3358,6,Groton,Buckeye Partners LP,CT,1,300,0,-72.0764,41.3358,EIA
