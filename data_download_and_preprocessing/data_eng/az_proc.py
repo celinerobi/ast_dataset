@@ -381,7 +381,7 @@ class annotator:
         
         self.tile_name_tile_url_labeled = np.load(tile_name_tile_url_labeled) #the tiles that have not yet been labeled to date
         self.tile_name_tile_url_labeled = np.concatenate((self.tile_name_tile_url_labeled, self.tile_name_tile_url_tiles_for_annotators), axis=0)
-        print("labeled Tiles", self.tile_name_tile_url_labeled.shape)
+        print("Labeled Tiles", self.tile_name_tile_url_labeled.shape)
 
         self.tile_name_tile_url_remaining = np.delete(self.tile_name_tile_url_unlabeled, range(self.num_tiles), 0) #the numpy array of the remaining tiles 
                                                                                   #(remove the tiles that the annotator is labeling)
