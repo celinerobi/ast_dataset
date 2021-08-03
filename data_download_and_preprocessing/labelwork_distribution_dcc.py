@@ -73,12 +73,11 @@ if __name__ == '__main__':
     
     dist.get_tile_urls(tiles_remaining)
 
-    dist.track_tile_annotations(tiles_labeled)
-    np.save('tile_name_tile_url_remaining_expanded', dist.tile_name_tile_url_remaining)
-    np.save('tile_name_tile_url_labeled', dist.tile_name_tile_url_labeled)
-
     dist.make_subdirectories()
     dist.download_images()
     dist.tile_rename()
     dist.chip_tiles()
     
+    dist.track_tile_annotations(tiles_labeled)
+    np.save('tile_name_tile_url_remaining_expanded', dist.tile_name_tile_url_remaining)
+    np.save('tile_name_tile_url_labeled', dist.tile_name_tile_url_labeled)
