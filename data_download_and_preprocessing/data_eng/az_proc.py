@@ -423,6 +423,7 @@ class annotator:
     def download_images(self):
         destination_of_filenames = [] #use so that we can index over the file names for processing later
         for i in range(self.num_tiles):
+            print(i)
             destination_of_filenames.append(download_url(self.tile_url[i], self.tiles_dir,
                                                          progress_updater=DownloadProgressBar()))
         return destination_of_filenames
