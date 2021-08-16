@@ -48,10 +48,10 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
 #Parsing/Modifying XML
-from lxml.etree import Element,SubElement,tostring
-import xml.dom.minidom
-from xml.dom.minidom import parseString
-import xml.etree.ElementTree as et
+#from lxml.etree import Element,SubElement,tostring
+#import xml.dom.minidom
+#from xml.dom.minidom import parseString
+#import xml.etree.ElementTree as et
 
 """
 Azure Functions
