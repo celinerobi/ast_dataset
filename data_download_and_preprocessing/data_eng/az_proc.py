@@ -24,7 +24,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import math
-import progressbar # pip install progressbar2, not progressbar
+#import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
 from contextlib import suppress
 #import cv2
