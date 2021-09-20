@@ -24,7 +24,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import math
-#import progressbar # pip install progressbar2, not progressbar
+import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
 from contextlib import suppress
 #import cv2
@@ -454,30 +454,23 @@ class annotator:
         
         print("function_opened")
         self.tile_names = os.listdir(self.tiles_dir) #get a list of all of the tiles in tiles directory
-        
         for tile_name in self.tile_names: #index over the tiles in the tiles_dir 
-
             file_name, ext = os.path.splitext(tile_name) # File name
             print(tile_name)
-            
             tile = Image.open(os.path.join(self.tiles_dir, tile_name)) #open image
             tile = tile.convert('RGB') #to file issues
-
             width, height = tile.size
             item_width = int(512)
             col = int(width/512)+1
             row = int(height/512)+1
             box_list = []
-            
             count = 1
             for j in range(0,col):
                 for i in range(0,row):
                     box = (i*item_width, j*item_width, (i+1)*item_width, (j+1)*item_width)
-
                     chips_save_path = os.path.join(self.chips_dir, file_name+ '_'+ \
                                                    str(count).zfill(6) + '.jpg') 
-                        # The index is a six-digit number like '000023'. 
-
+                    # The index is a six-digit number like '000023'. 
                     #chip = tile.crop(box)
                     #chip = chip.save(chips_save_path)
                     chip = tile.crop(box).save(chips_save_path)
