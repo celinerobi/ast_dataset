@@ -74,8 +74,8 @@ if __name__ == '__main__':
     dist.get_tile_urls(tiles_remaining)
 
     dist.make_subdirectories()
-    dist.download_images()
-    dist.tile_rename()
+    #dist.download_images()
+    #dist.tile_rename()
     dist.chip_tiles()
     
     dist.track_tile_annotations(tiles_labeled)

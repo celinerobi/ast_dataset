@@ -29,7 +29,8 @@ def get_args_parse():
     return args
 
 def main(args):  
-    tile_img_annotation_annotator = np.load(args.tracker_file_path)
+    if os.path.exists(args.tracker_file_path):
+        tile_img_annotation_annotator = np.load(args.tracker_file_path)
     folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory, args.set_number)
     tile_img_annotation_annotator = ap.seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, 
                                                                                         args.set_number, tile_img_annotation_annotator)

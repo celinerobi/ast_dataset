@@ -414,11 +414,6 @@ class annotator:
         #Make directory to store all xml after correction
         self.chips_positive_corrected_xml_dir = os.path.join(self.new_dir,"chips_positive_corrected_xml")
         os.makedirs(self.chips_positive_corrected_xml_dir, exist_ok = True)
-        
-        self.complete_dataset_xml_dir = os.path.join(self.dcc_directory,"complete_dataset",'chips_positive_xml') 
-        os.makedirs(self.complete_dataset_xml_dir, exist_ok=True) #directory to hold entire dataset annotations
-        self.complete_dataset_chips_dir = os.path.join(self.dcc_directory,"complete_dataset","chips_positive") 
-        os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
     
     def download_images(self):
         destination_of_filenames = [] #use so that we can index over the file names for processing later
@@ -566,6 +561,12 @@ class annotator:
     def move_images_annotations_to_complete_dataset(self, original = True):
         """seperate out positive chips/annotations into specific directory.
         """
+        #make a complete dataset
+        self.complete_dataset_xml_dir = os.path.join(self.dcc_directory,"complete_dataset",'chips_positive_xml') 
+        os.makedirs(self.complete_dataset_xml_dir, exist_ok=True) #directory to hold entire dataset annotations
+        self.complete_dataset_chips_dir = os.path.join(self.dcc_directory,"complete_dataset","chips_positive") 
+        os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
+        
         if original:
             annotations_path = self.chips_positive_corrected_xml_dir
             annotations = os.listdir(annotations_path)
