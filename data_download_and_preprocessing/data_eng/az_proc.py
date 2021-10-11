@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
-#import cv2
+import cv2
 
 # Image processing files
 import matplotlib
@@ -433,7 +433,7 @@ class annotator:
             old_tile_path = os.path.join(self.tiles_dir, tile_name)
             new_tile_path = os.path.join(self.tiles_dir, tile_name_split[6]+'_'+tile_name_split[7]+'_'+tile_name_split[8]+'_'+tile_name_split[9]+'_'+  \
                                                     tile_name_split[10]+'_'+tile_name_split[11]+'_'+tile_name_split[12]+'_'+tile_name_split[13]+'_'+  \
-                                                    tile_name_split[14]+'_'+tile_name_split[15])
+                                                    tile_name_split[14]+'_'+tile_name_split[15].split(".")[0]+".tif")
 
             if os.path.isfile(new_tile_path):
                 print('Bypassing download of already-downloaded file {}'.format(os.path.basename(new_tile_path)))
@@ -444,30 +444,52 @@ class annotator:
     def chip_tiles(self):
         """Segment tiles into 512 x 512 pixel chips, preserving resolution
         """
-        
-        print("function_opened")
+        print("chip tiles")
         self.tile_names = os.listdir(self.tiles_dir) #get a list of all of the tiles in tiles directory
         for tile_name in self.tile_names: #index over the tiles in the tiles_dir 
             file_name, ext = os.path.splitext(tile_name) # File name
             print(tile_name)
-            tile = Image.open(os.path.join(self.tiles_dir, tile_name)) #open image
-            tile = tile.convert('RGB') #to file issues
-            width, height = tile.size
-            item_width = int(512)
-            col = int(width/512)+1
-            row = int(height/512)+1
-            box_list = []
-            count = 1
-            for j in range(0,col):
-                for i in range(0,row):
-                    box = (i*item_width, j*item_width, (i+1)*item_width, (j+1)*item_width)
+            item_dim = int(512)
+            count = 1            
+            tile = cv2.imread(os.path.join(self.tiles_dir, tile_name)) 
+            tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
+
+            #divide the tile into 512 by 512 chips (rounding up)
+            row_index = math.ceil(tile_height/512) 
+            col_index = math.ceil(tile_width/512)
+            #print(row_index, col_index)
+
+            for y in range(0, col_index):
+                for x in range(0, row_index):
+                    chip_img = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
+
+                    #specify the path to save the image
                     chips_save_path = os.path.join(self.chips_dir, file_name+ '_'+ \
-                                                   str(count).zfill(6) + '.jpg') 
-                    # The index is a six-digit number like '000023'. 
-                    #chip = tile.crop(box)
-                    #chip = chip.save(chips_save_path)
-                    chip = tile.crop(box).save(chips_save_path)
-                    count += 1
+                               str(count).zfill(6) + '.jpg') # The index is a six-digit number like '000023'.
+
+                    #add in back space if it is the edge of an image
+                    if chip_img.shape[0] != 512:  #Height
+                        #print("Incorrect Height")
+                        black_height = 512  - chip_img.shape[0] #Height
+                        black_width = 512 #- chip_img.shape[1] #width
+                        black_img = np.zeros((black_height,black_width,3), np.uint8)
+                        #print(black_img.shape[0]) #Height
+                        #print(black_img.shape[1]) #width
+                        chip_img = np.concatenate([chip_img, black_img])
+
+                    if chip_img.shape[1] != 512: #width
+                        #print("Incorrect Width")
+                        black_height = 512 #- chip_img.shape[0] #Height
+                        black_width = 512 - chip_img.shape[1] #width
+                        black_img = np.zeros((black_height,black_width,3), np.uint8)
+                        #print(black_img.shape[0]) #Height
+                        #print(black_img.shape[1]) #width
+                        chip_img = np.concatenate([chip_img, black_img],1)
+
+                    #save image
+                    cv2.imwrite(os.path.join(chips_save_path), chip_img)    
+                    #counter for image pathway
+                    count += 1  
             print(count)
 
     def copy_positive_images(self):
