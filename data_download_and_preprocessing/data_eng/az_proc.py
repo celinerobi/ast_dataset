@@ -5,31 +5,29 @@ Module containing azure functions, and label work distribution and image process
 """
 Load Packages
 """
-# Standard packages
+# Standard modules
 import tempfile
 import warnings
 import urllib
 import urllib.request
 #import shutils
 import shutil 
-
 import os
 import os.path
 from pathlib import Path
 import sys
 from zipfile import ZipFile
+import pickle
+import math
+from contextlib import suppress
+from glob import glob
 
 # Less standard, but still pip- or conda-installable
 import pandas as pd
 import numpy as np
-import pickle
-import math
 import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
-from contextlib import suppress
 #import cv2
-
-from glob import glob
 
 # Image processing files
 import matplotlib

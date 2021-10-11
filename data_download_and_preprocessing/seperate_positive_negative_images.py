@@ -3,45 +3,32 @@
 
 #!/usr/bin/env python
 # coding: utf-8
+#python modules
+import os
+import os.path
+import urllib
+import urllib.request
+import shutil
+import tempfile
+import argparse
+import math
+import warnings
+from zipfile import ZipFile
+import pickle
+from contextlib import suppress
+import sys
+
+#python packages
 import numpy as np
 import pandas as pd
-import os
-import os.path
-import urllib.request
 import progressbar # pip install progressbar2, not progressbar
-
-import os
-import shutil
-
-import tempfile
-import urllib
-import shutil
-import os
-import os.path
-import argparse
-
 import PIL
 from PIL import Image
-
-import math
-import numpy as np
-import pandas as pd
 import rtree
-import pickle
-
-import progressbar # pip install progressbar2, not progressbar
-
 from geopy.geocoders import Nominatim
-
-from contextlib import suppress
-
-import sys
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import ConnectionPatch
-
-import warnings
-from zipfile import ZipFile
 
 import data_eng.az_proc as ap
 
