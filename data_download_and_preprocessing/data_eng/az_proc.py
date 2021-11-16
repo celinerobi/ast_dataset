@@ -731,11 +731,10 @@ def reference_image_annotation_file_with_annotator(img_annotation_path,
         anno_files = sorted(os.listdir(img_annotation_path[i,1])) #pull the files in the annotation folder
 
         #annotator
-        path = Path(img_annotation_path[i,0]) #get root path
-        parent_dir = path.parent.absolute()
-        annotator = str(parent_dir).split('\\')[3]
+        path = Path(img_annotation_path[i,0]).parent.absolute() #get root path of chips postive/chips postive xml folder
+        annotator = str(path).rsplit('\\')[-2] #get the annotator name from the root path
         annotator_list = [annotator] * len(anno_files)
-        
+                
         #annotator - verify coverage 
         annotator_verify_coverage = [""] * num_img_files
 

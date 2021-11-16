@@ -1,5 +1,5 @@
 """
-Data Summary of Labeled Images (To - Date)
+Record the tile, chip, and annotation file names, chip pathway, and annotator name in a csv and npy array after each worker has reviewed their annotations.
 """
 
 """
@@ -16,10 +16,10 @@ import data_eng.az_proc as ap
 
 def get_args_parse():
     parser = argparse.ArgumentParser(
-        description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
+        description='This script records the annotator who has labeled each image')
     parser.add_argument('--tracker_file_path', type=str, default='outputs/tile_img_annotation_annotator.npy',
                         help='The file path of the numpy array that contains thes the image tracking')
-    parser.add_argument('--parent_directory', type=str, default = "D:/",
+    parser.add_argument('--parent_directory', type=str, default = "C:\chip_allocation",
                         help='path to parent directory, holding the annotation directories.')
     args = parser.parse_args()
     return args
