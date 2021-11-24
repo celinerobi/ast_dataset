@@ -44,7 +44,10 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
                                             --tiles_labeled path_to_numpy_array
                                             
 Example:
-python labelwork_distribution_dcc.py --number_of_tiles 10 --annotation_directory Feinberg_6 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 11 --annotation_directory Kang_8 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+
+Kang_8 11
+
 ### Naming Convention:
 #### Tile Naming Convention:
 All tiles' names include information: state_resolution_year_quadrangle_filename
@@ -78,7 +81,14 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student7_Niculescu --parent_directory C:\chip_allocation
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student7_Kang --parent_directory C:\chip_allocation
+
+unverified_images_not_reviewed_by_student7_Poonacha
+unverified_images_not_reviewed_by_student8_Niculescu
+unverified_images_not_reviewed_by_student8_Cleave
+unverified_images_not_reviewed_by_student7_Tang
+unverified_images_not_reviewed_by_student7_Kang
+
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
 
