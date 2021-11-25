@@ -592,13 +592,12 @@ class annotator:
             annotations = os.listdir(annotations_path)
             
         if not original:
-            annotations_path = self.chips_positive_xml_dir
+            annotations_path = self.chips_xml_dir
             annotations = os.listdir(annotations_path)  
             
         for a in annotations:
             #copy annotations 
             shutil.copy(os.path.join(annotations_path, a), self.complete_dataset_xml_dir)
-        
         
         images = os.listdir(self.chips_positive_dir)
         for i in images:
@@ -715,7 +714,7 @@ def reference_image_annotation_file_with_annotator(img_annotation_path,
         for image in os.listdir(img_annotation_path[i,0]): #iterate through the images
             if image.endswith(".jpg"):
                 img_files.append(image)
-                img_file_pathways.append(os.path.join(img_annotation_path[i,0], image))
+                img_file_pathways.append(os.path.join(img_annotation_path[i,0]))
         
         #sort so that the paths/file names match
         img_file_pathways = sorted(img_file_pathways)
@@ -754,10 +753,13 @@ def reference_image_annotation_file_with_annotator(img_annotation_path,
         
     return tile_img_annotation_annotator
 
-def verification_folders(home_directory, set_number):
+def verification_folders_specify_in_function(home_directory, set_number):
     """
-    Create folder for workers to verify images
+    Create folder for workers to verify images 
     """
+    verification_dir = os.path.join(home_directory,'verification_set2') #create verification folder 
+    os.makedirs(verification_dir, exist_ok=True) 
+
     folder_names = ['josh_james_amadu',
                     'jaewon_james_josh',
                     'jaewon_james_amadu',
@@ -769,8 +771,6 @@ def verification_folders(home_directory, set_number):
 
     folder_annotator_list = []
 
-    verification_dir = os.path.join(home_directory,'verification') #create verification folder 
-    os.makedirs(verification_dir, exist_ok=True) 
 
     for i in range(len(folder_names)):    
         print(folder_names[i])
@@ -783,9 +783,7 @@ def verification_folders(home_directory, set_number):
 
     return(folder_annotator_list, verification_dir)
 
-
-
-def seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, set_number, tile_img_annotation_annotator):
+def seperate_images_for_verification_update_tracking_specify_in_function(folder_annotator_list, verification_dir, set_number, tile_img_annotation_annotator):
     """
     Move images to verifcation folder
     """
@@ -810,6 +808,82 @@ def seperate_images_for_verification_update_tracking(folder_annotator_list, veri
 
                     count += 1 #count the files allocated to each 
         print(count)
+    return tile_img_annotation_annotator
+
+def update_path(path, tracker_file_path):
+    """
+    If the verfification has not yet been completed, update the image/xml path
+    """
+    img_annotation_path = img_path_anno_path(list_of_sub_directories(path))
+    
+    #get the correct img files + image_file_pathways
+    img_files = [] #pull the files in the img folder
+    img_file_pathways = [] #pull the files in the img folder
+    for i in range(len(img_annotation_path)): #index over each folder         
+        for image in os.listdir(img_annotation_path[i,0]): #iterate through the images
+            if image.endswith(".jpg"):
+                img_file_pathways.append(os.path.join(img_annotation_path[i,0].rsplit("/",1)[0]))
+                img_files.append(image)
+    imgs_and_pathways = np.array(list(zip(img_file_pathways, img_files)))
+
+    #replace incorrect pathways
+    tile_img_annotation_annotator = np.load(tracker_file_path)
+    for i in range(len(tile_img_annotation_annotator)): #i - index for tracker .npy
+        for ii in np.where(imgs_and_pathways[:,1] == tile_img_annotation_annotator[i,1])[0]: #find the same images, (ii -index for img and pathway array)
+            if imgs_and_pathways[ii,0] != tile_img_annotation_annotator[i,2]:
+                tile_img_annotation_annotator[i,2] = imgs_and_pathways[ii,0]
+
+    np.save('outputs/tile_img_annotation_annotator.npy', tile_img_annotation_annotator)
+    column_names = ["tile_name", "chip_name", "chip pathway", "xml annotation", 
+                    "annotator - draw","annotator - verify coverage",
+                    "annotator - verify quality", "annotator - verify classes"]
+    tile_img_annotation_annotator_df = pd.DataFrame(data = tile_img_annotation_annotator, 
+                                                   index = tile_img_annotation_annotator[:,1], 
+                                                   columns = column_names)
+    tile_img_annotation_annotator_df.to_csv('outputs/tile_img_annotation_annotator_df.csv')
+    return tile_img_annotation_annotator 
+
+def verification_folders(home_directory, folder_names, annotator_allocation, set_number):
+    """
+    Create folder for workers to verify images
+    Args:
+    """
+    #create verification folder 
+    verification_dir = os.path.join(home_directory,'verification_set'+set_number) 
+    os.makedirs(verification_dir, exist_ok=True) 
+
+    #pair folder name with annotors 
+    print(folder_names[0])
+    ##create verification subfolder for each group
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number), exist_ok = True) #verification folder for each group
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number, "chips"), exist_ok = True) #image sub folder             
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number, "chips_xml"), exist_ok = True) #xml sub folder
+    folder_annotator_list = [folder_names[0], annotator_allocation]
+    return(folder_annotator_list, verification_dir)
+
+def seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, set_number, tile_img_annotation_annotator):
+    """
+    Move images to verifcation folder
+    """        
+    print("folder",folder_annotator_list[0]) #the current folder
+    count = 0
+    for i in range(len(folder_annotator_list[1])): #iterate over annotator
+        print("annotator",folder_annotator_list[1][i]) #the current annotator
+        for ii in np.where(tile_img_annotation_annotator[:, 4] == folder_annotator_list[1][i])[0]:
+                if len(tile_img_annotation_annotator[ii,5]) == 0:
+                    tile_img_annotation_annotator[ii,5] = folder_annotator_list[0].split("_")[0].capitalize()#coverage
+                    tile_img_annotation_annotator[ii,6] = folder_annotator_list[0].split("_")[1].capitalize()#quality
+                    tile_img_annotation_annotator[ii,7] = folder_annotator_list[0].split("_")[2].capitalize()#class
+
+                    shutil.copy(os.path.join(tile_img_annotation_annotator[ii, 2],"chips_positive", tile_img_annotation_annotator[ii, 1]), 
+                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips")) #copy images
+
+                    shutil.copy(os.path.join(tile_img_annotation_annotator[ii, 2], "chips_positive_xml",
+                                             tile_img_annotation_annotator[ii, 3]), 
+                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips_xml")) #copy annotations
+
+                    count += 1 #count the files allocated to each 
+    print(count)
     return tile_img_annotation_annotator
 
 

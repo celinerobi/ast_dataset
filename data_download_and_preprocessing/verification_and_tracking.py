@@ -1,5 +1,5 @@
 """
-Data Summary of Labeled Images (To - Date)
+Verification and Tracking
 """
 
 """
@@ -21,8 +21,10 @@ def get_args_parse():
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
     parser.add_argument('--tracker_file_path', type=str, default='outputs/tile_img_annotation_annotator.npy',
                         help='The file path of the numpy array that contains thes the image tracking')
-    parser.add_argument('--home_directory', type=str, default = "D:/",
+    parser.add_argument('--home_directory', type=str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk",
                         help='root path to the data commons storage space')
+    parser.add_argument("--folder_names", type=list, default=None)
+    parser.add_argument("--annotator_allocation", nargs="+", default=None)
     parser.add_argument('--set_number', type=str, default=None,
                         help='The iteration of verification')
     args = parser.parse_args()
@@ -30,8 +32,10 @@ def get_args_parse():
 
 def main(args):  
     if os.path.exists(args.tracker_file_path):
-        tile_img_annotation_annotator = np.load(args.tracker_file_path)
-    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory, args.set_number)
+        verfication_set = os.path.join(home_directory, "verification_set" + args.set_number, "unverified_images")
+        tile_img_annotation_annotator = ap.update_path(verfication_set, args.tracker_file_path)
+      
+    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory,args.folder_names, args.annotator_allocation, args.set_number)
     tile_img_annotation_annotator = ap.seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, 
                                                                                         args.set_number, tile_img_annotation_annotator)
     

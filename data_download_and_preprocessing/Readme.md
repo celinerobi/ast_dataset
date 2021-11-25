@@ -44,7 +44,7 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
                                             --tiles_labeled path_to_numpy_array
                                             
 Example:
-python labelwork_distribution_dcc.py --number_of_tiles 11 --annotation_directory Kang_8 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 9 --annotation_directory Alvarez_6 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
 Kang_8 11
 
@@ -81,13 +81,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student7_Kang --parent_directory C:\chip_allocation
-
-unverified_images_not_reviewed_by_student7_Poonacha
-unverified_images_not_reviewed_by_student8_Niculescu
-unverified_images_not_reviewed_by_student8_Cleave
-unverified_images_not_reviewed_by_student7_Tang
-unverified_images_not_reviewed_by_student7_Kang
+python seperate_positive_negative_images.py  --annotation_directory Alvarez_5 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
@@ -110,8 +104,7 @@ python verification_and_tracking.py --tracker_file_path outputs/tile_img_annotat
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
-python make_complete_dataset.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
-
+python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set1\unverified_images\student_reviewed_unverified_images
 ## 6) Standardize class labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              
@@ -119,6 +112,8 @@ Example:
 python correct_incon_labels.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
 
 python correct_incon_labels.py --parent_directory C:\chip_allocation
+
+Z:\verification_set2\unverified_images\student_reviewed_unverified_images
 
 ### 7) Check if any images are missing annotations 
 path_to_images = "D:/Unverified_images/student_reviewed_unverified_images"
