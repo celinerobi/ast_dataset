@@ -11,17 +11,11 @@
             * [Chip Naming Convention](#chip-naming-convention)
     * [2. Seperate Positive and Negative Images](#seperate-positive-and-negative-images)
     * [3. Record Annotator](#record-annotator)
-    * [2. Seperate Positive and Negative Images](#seperate-positive-and-negative-images)
-    * [2. Seperate Positive and Negative Images](#seperate-positive-and-negative-images)
-
-* [Features](#features)
-* [Screenshots](#screenshots)
-* [Setup](#setup)
-* [Usage](#usage)
-* [Project Status](#project-status)
-* [Room for Improvement](#room-for-improvement)
-* [Acknowledgements](#acknowledgements)
-* [Contact](#contact)
+    * [4. Verification and Tracking](#verification-and-tracking)
+    * [5. Create Complete Dataset](#create-complete-dataset)
+    * [6. Standardize Object Labels](#standardize-object-labels)
+    * [7. Identify Missing Annotations](#identify-missing-annotations)
+    * [8. Data Summary](#data-summary)
 ## General Information
 - Provide general information about your project here.
 - What problem does it (intend to) solve?
@@ -91,7 +85,7 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
 
-## 4) Verification and tracking
+## 4. Verification and Tracking
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
 
 python verification_and_tracking.py     --tracker_file_path path_to_tracker_numpy_array
@@ -100,37 +94,33 @@ python verification_and_tracking.py     --tracker_file_path path_to_tracker_nump
   
 Example:
 python verification_and_tracking.py --tracker_file_path outputs/tile_img_annotation_annotator.npy --set_number 1 --home_directory D:/
-## 5) Move all of the annotated images and xmls into one folder (Combine all images into one folder)
+## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
 python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set1\unverified_images\student_reviewed_unverified_images
-## 6) Standardize class labels 
+## 6. Standardize Object Labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              
 Example:
 python correct_incon_labels.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
 
-python correct_incon_labels.py --parent_directory C:\chip_allocation
-
-Z:\verification_set2\unverified_images\student_reviewed_unverified_images
-
-### 7) Check if any images are missing annotations 
+python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset
+### 7. Identify Missing Annotations 
 path_to_images = "D:/Unverified_images/student_reviewed_unverified_images"
 sub_directories = ap.list_of_sub_directories(path_to_images)
 img_anno = ap.img_path_anno_path(sub_directories)
 #check_for_missing_images_annotations(img_anno)
 
-## Data summary
+## 8. Data Summary
 Creates a table of the number of closed_roof_tanks, water_treatment_tank, spherical_tank, external_floating_roof_tank, water_tower for all of the images. 
 
 python data_clean_descrip.py  --parent_directory \dir_containing_all_annotator_folders 
                               --tiles_remaining path_to_numpy_array
                               --tiles_labeled path_to_numpy_array
                                              
-Example:
-python data_clean_descrip.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images --tiles_remaining tile_name_tile_url_remaining.npy --tiles_labeled tile_name_tile_url_labeled.npy 
+Example for complete dataset:
+python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset --annotation_directory chips_positive_corrected_xml --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
 
-python data_clean_descrip.py --parent_directory D:\verification\unverified_images
 
     

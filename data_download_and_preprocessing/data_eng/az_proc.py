@@ -46,10 +46,10 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
 #Parsing/Modifying XML
-#from lxml.etree import Element,SubElement,tostring
-#import xml.dom.minidom
-#from xml.dom.minidom import parseString
-#import xml.etree.ElementTree as et
+from lxml.etree import Element,SubElement,tostring
+import xml.dom.minidom
+from xml.dom.minidom import parseString
+import xml.etree.ElementTree as et
 
 """
 Azure Functions
@@ -549,6 +549,7 @@ class annotator:
                        "water_treatment_facility": "sedimentation_tank",
                        "water_tower": "water_tower",
                        "water_tower ": "water_tower",
+                       'water_towe': "water_tower",
                        "spherical_tank":"spherical_tank",
                        'sphere':"spherical_tank",
                        'spherical tank':"spherical_tank",
@@ -559,8 +560,7 @@ class annotator:
         number_of_images = len(self.chips_xml_list)
         
         #"enumerate each image" This chunk is actually just getting the paths for the images and annotations
-        for i in range(len(self.chips_positive_list)):
-            img_file = self.chips_positive_list[i]
+        for i in range(len(self.chips_xml_list)):
             xml_file = self.chips_xml_list[i]
             # use the parse() function to load and parse an XML file
             tree = et.parse(os.path.join(self.chips_xml_dir, xml_file))
@@ -928,7 +928,6 @@ def summary_of_dataset(img_path, anno_path):
     all_objects_count = 0 #all objects
     closed_roof_tank_count = 0 #closed_roof_tank
     narrow_closed_roof_tank_count = 0 #narrow_closed_roof_tank
-    water_tower_count = 0 #water_tower
     external_floating_roof_tank_count = 0 #external_floating_roof_tank
     spherical_tank_count = 0 #spherical_tank
     sedimentation_tank_count = 0 #water_treatment_tank
@@ -980,7 +979,7 @@ def summary_of_dataset(img_path, anno_path):
     unknown_object_name = np.unique(unknown_object_name)
     return summary_table, unknown_object_name, number_of_images
 
-def dataset_summary_assessment(img_annotation_path):
+def dataset_summary_assessment(img_annotation_path, multiple = True):
     """
     #### Iterate over the list of paths an create summary tables for each of the folders
     """
@@ -992,13 +991,19 @@ def dataset_summary_assessment(img_annotation_path):
 
     unknown_object = []
     number_of_images = 0
-
-    for i in range(len(img_annotation_path)):
-        summary_table_temp, unknown_object_array_temp, number_of_images_temp = summary_of_dataset(img_annotation_path[i,0], img_annotation_path[i,1])
+    if multiple == True:
+        for i in range(len(img_annotation_path)):
+            summary_table_temp, unknown_object_array_temp, number_of_images_temp = summary_of_dataset(img_annotation_path[i,0],
+                                                                                                      img_annotation_path[i,1])
+            summary_table = summary_table.add(summary_table_temp)
+            unknown_object.append(unknown_object_array_temp)
+            number_of_images += number_of_images_temp
+    if multiple == False:
+        summary_table_temp, unknown_object_array_temp, number_of_images_temp = summary_of_dataset(img_annotation_path[0],
+                                                                                                             img_annotation_path[1])
         summary_table = summary_table.add(summary_table_temp)
         unknown_object.append(unknown_object_array_temp)
         number_of_images += number_of_images_temp
-        
     summary_table.to_csv('outputs/summary_table.csv')
     print("Array unknown objects", unknown_object)
     print("The number of clipped images included in the assessment", number_of_images)
