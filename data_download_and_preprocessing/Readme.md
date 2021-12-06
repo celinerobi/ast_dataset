@@ -38,9 +38,9 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
                                             --tiles_labeled path_to_numpy_array
                                             
 Example:
-python labelwork_distribution_dcc.py --number_of_tiles 10 --annotation_directory Shen_4 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 8 --annotation_directory Shen_4 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
-python labelwork_distribution_dcc.py --number_of_tiles 14 --annotation_directory Kang_9 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 8 --annotation_directory Nayak_3 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
 ### Naming Convention:
 #### Tile Naming Convention:
@@ -75,9 +75,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory Nayak_2 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student6_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student2_Nayak --parent_directory C:\chip_allocation
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student6_Feinberg --parent_directory C:\chip_allocation
 
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
