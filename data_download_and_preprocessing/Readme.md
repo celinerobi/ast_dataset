@@ -77,7 +77,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
 Example:
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student6_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student9_Poonacha --parent_directory C:\chip_allocation
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student10_Poonacha --parent_directory C:\chip_allocation
 
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
@@ -86,6 +86,8 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
                                              
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
+
+python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images
 
 ## 4. Verification and Tracking
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
