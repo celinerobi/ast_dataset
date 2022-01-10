@@ -23,8 +23,10 @@ def get_args_parse():
                         help='The file path of the numpy array that contains thes the image tracking')
     parser.add_argument('--home_directory', type=str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk",
                         help='root path to the data commons storage space')
-    parser.add_argument("--folder_names", type=list, default=None)
-    parser.add_argument("--annotator_allocation", nargs="+", default=None)
+    parser.add_argument("--folder_name", type=list, default=None,
+                       help = "The name of the folder to be verified, is named by the researchers who will verify, \n
+                        in order of the verifications phase, coverage, quality, class")
+    parser.add_argument("--annotator_allocation", nargs="+", default=str)
     parser.add_argument('--set_number', type=str, default=None,
                         help='The iteration of verification')
     args = parser.parse_args()
@@ -35,7 +37,7 @@ def main(args):
         verfication_set = os.path.join(home_directory, "verification_set" + args.set_number, "unverified_images")
         tile_img_annotation_annotator = ap.update_path(verfication_set, args.tracker_file_path)
       
-    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory,args.folder_names, args.annotator_allocation, args.set_number)
+    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory,args.folder_name, args.annotator_allocation, args.set_number)
     tile_img_annotation_annotator = ap.seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, 
                                                                                         args.set_number, tile_img_annotation_annotator)
     

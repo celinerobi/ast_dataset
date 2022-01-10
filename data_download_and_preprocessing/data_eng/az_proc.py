@@ -707,7 +707,7 @@ def reference_image_annotation_file_with_annotator(img_annotation_path,
         tile_img_annotation_annotator = np.empty((1,8)) #form a numpy array
 
     for i in range(len(img_annotation_path)): #index over each folder
-
+        print(img_annotation_path[i,0])
         #img files + image_file_pathways
         img_files = [] #pull the files in the img folder
         img_file_pathways = [] #pull the files in the img folder
@@ -843,7 +843,7 @@ def update_path(path, tracker_file_path):
     tile_img_annotation_annotator_df.to_csv('outputs/tile_img_annotation_annotator_df.csv')
     return tile_img_annotation_annotator 
 
-def verification_folders(home_directory, folder_names, annotator_allocation, set_number):
+def verification_folders(home_directory, folder_name, annotator_allocation, set_number):
     """
     Create folder for workers to verify images
     Args:
@@ -853,12 +853,12 @@ def verification_folders(home_directory, folder_names, annotator_allocation, set
     os.makedirs(verification_dir, exist_ok=True) 
 
     #pair folder name with annotors 
-    print(folder_names[0])
+    print(folder_name[0])
     ##create verification subfolder for each group
-    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number), exist_ok = True) #verification folder for each group
-    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number, "chips"), exist_ok = True) #image sub folder             
-    os.makedirs(os.path.join(verification_dir, "verify_" + folder_names[0]+ "_" + set_number, "chips_xml"), exist_ok = True) #xml sub folder
-    folder_annotator_list = [folder_names[0], annotator_allocation]
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number), exist_ok = True) #verification folder for each group
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips"), exist_ok = True) #image sub folder             
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips_xml"), exist_ok = True) #xml sub folder
+    folder_annotator_list = [folder_name[0], annotator_allocation]
     return(folder_annotator_list, verification_dir)
 
 def seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, set_number, tile_img_annotation_annotator):

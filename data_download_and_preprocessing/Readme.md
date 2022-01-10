@@ -77,6 +77,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
 Example:
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student6_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
+python seperate_positive_negative_images.py  --annotation_directory Celine_2 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\Celine
+
+
 python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
 
 ## 3. Record Annotator
@@ -89,15 +92,37 @@ python track_annotator_draw.py --parent_directory C:\chip_allocation
 
 python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images
 
+
+Troubleshooting:
+ValueError: all the input array dimensions for the concatenation axis must match exactly...
+Ensure tha: Thumbs.db files have been removed from the folder containing the images (chips_positive); files containing predefined classes have been removed from the folder containing annotations (chips_positive_xml); positive images have been copied to the correct folder (chip_positive).
 ## 4. Verification and Tracking
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
 
 python verification_and_tracking.py     --tracker_file_path path_to_tracker_numpy_array
-                                        --set_number the_set_number
                                         --home_directory path_to_home_directory
-  
+                                        --folder_name coverage_quality_class
+                                        --set_number the_set_number
+                                        --annotator_allocation annotator1 annotator2
 Example:
-python verification_and_tracking.py --tracker_file_path outputs/tile_img_annotation_annotator.npy --set_number 1 --home_directory D:/
+python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images --folder_name verify_Poonacha_Niculescu_Sunny_3 --annotator_allocation Cleave Kang --set_number 3
+
+
+
+
+
+
+
+set_1 = ["Cleave", "Kang"]
+
+verify_Cleave_Sunny_Poonacha_3
+set_2 = ["Niculescu", "Alvarez", "Katpally", "Nayak", "Tang",'Celine']
+
+verify_Poonacha_Niculescu_Cleave_3
+set_3 = ["Sunny","Jaewon", "Josh",'Feinberg']
+
+verify_Niculescu_Cleave_Sunny_3
+set_4 = ["Poonacha", "Shen"]
 ## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              

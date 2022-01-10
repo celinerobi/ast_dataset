@@ -26,7 +26,7 @@ def get_args_parse():
     
 def main(args): 
     img_anno = ap.img_path_anno_path(ap.list_of_sub_directories(args.parent_directory))
-    print(img_anno)
+    #print(img_anno)
     tracking_array = ap.reference_image_annotation_file_with_annotator(img_anno, args.tracker_file_path) #load existing and update 
     
     #Save numpy array
