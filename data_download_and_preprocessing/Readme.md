@@ -75,10 +75,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student6_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student7_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory Celine_2 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\Celine
-
 
 python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
 
@@ -92,6 +91,7 @@ python track_annotator_draw.py --parent_directory C:\chip_allocation
 
 python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images
 
+Z:\verification_set3\unverified_images\student_reviewed_unverified_images
 
 Troubleshooting:
 ValueError: all the input array dimensions for the concatenation axis must match exactly...
@@ -101,28 +101,12 @@ After the annotators have reviewed their images to fix any small errors, the org
 
 python verification_and_tracking.py     --tracker_file_path path_to_tracker_numpy_array
                                         --home_directory path_to_home_directory
-                                        --folder_name coverage_quality_class
+                                        --verifiers coverage_quality_class
                                         --set_number the_set_number
                                         --annotator_allocation annotator1 annotator2
 Example:
-python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images --folder_name verify_Poonacha_Niculescu_Sunny_3 --annotator_allocation Cleave Kang --set_number 3
+python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Niculescu_Cleave_Sunny --annotator_allocation Poonacha Shen --set_number 3
 
-
-
-
-
-
-
-set_1 = ["Cleave", "Kang"]
-
-verify_Cleave_Sunny_Poonacha_3
-set_2 = ["Niculescu", "Alvarez", "Katpally", "Nayak", "Tang",'Celine']
-
-verify_Poonacha_Niculescu_Cleave_3
-set_3 = ["Sunny","Jaewon", "Josh",'Feinberg']
-
-verify_Niculescu_Cleave_Sunny_3
-set_4 = ["Poonacha", "Shen"]
 ## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              

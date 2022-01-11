@@ -883,7 +883,7 @@ def seperate_images_for_verification_update_tracking(folder_annotator_list, veri
                                 os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips_xml")) #copy annotations
 
                     count += 1 #count the files allocated to each 
-    print(count)
+        print(count)
     return tile_img_annotation_annotator
 
 
