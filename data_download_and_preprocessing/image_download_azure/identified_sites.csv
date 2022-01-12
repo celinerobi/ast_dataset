@@ -1,66 +1,92 @@
-﻿,,Lat,Lon
-,,36.072774,-79.93602
-,,39.364582,-77.040195
-,,37.38603,-79.736822
-Petro Star Valdez Refinery,Alaska,61.084033,-146.251729
-Valdez,Alaska,61.080998,-146.391207
-Trans-Alaska Pipeline Pump Station 7,Alaska,65.311471,-148.280545
-,Washington,47.049224,-122.899226
-US Oil & Refining Co,Washington,47.255901,-122.394282
-BP Cherry Point Refinery,Washington,48.884931,-122.731644
-Base Operation Center (BOC),Alaska,70.293641,-148.705197
-Buckeye Terminals,Ohio,39.960731,-83.095298
-Sunoco Terminal,Ohio,39.969936,-83.102468
-Marathon Petroleum Corporation,Ohio,39.96603,-83.103016
-Sunoco Logistics Partners LP,Ohio,41.627681,-83.491516
-,Maryland,39.22884,-76.572246
-,Maryland,39.228544,-76.568156
-,Maryland,39.235656,-76.565737
-,Maryland,39.233475,-76.562709
-,Maryland,39.243885,-76.577151
-,Maryland,39.239981,-76.577973
-,Maryland,39.209043,-76.590967
-,Maryland,39.212661,-76.584395
-,Maryland,39.214222,-76.570628
-,Maryland,39.176905,-76.527184
-,Delaware,39.711424,-75.530267
-,Delaware,39.742621,-75.504821
-,Delaware,39.589621,-75.624256
-,Pennsylvania,40.503047,80.09681
-,Pennsylvania,40.496933,-80.083405
-,Connecticut,41.29305,-72.903622
-,"Pittsburgh, PA",40.479377,-80.046161
-,Delaware,39.58424,-75.619681
-,Delaware,39.592643,-75.637563
-,Pennsylvania,40.524993,-80.175821
-,Pennsylvania,40.47662,-80.051518
-,Connecticut,41.297769,-72.899884
-,Connecticut,41.333625,-72.893525
-,Connecticut,41.302043,-72.889844
-,Connecticut,41.299736,-72.909557
-,Connecticut,41.287083,-72.898194
-,Connecticut,41.283667,-72.901224
-,Connecticut,41.717263,-72.647296
-,Connecticut,41.29091,-72.905163
-,Connecticut,41.717263,-72.647296
-,Connecticut,41.336594,-72.078319
-,Tennessee,35.944326,-83.93421
-PBF Logistics,Tennessee,35.962838,-83.990744
-,Tennessee,35.962926,-84.002772
-,Tennessee,35.959562,-83.909212
-,Tennessee,35.962894,-84.003847
-,Tennessee,35.958542,-83.997384
-,Tennessee,35.962398,-83.997663
-,Tennessee,35.962804,-83.99014
-,North Carolina,36.078009,-79.928941
-,North Carolina,36.075659,-79.919415
-,North Carolina,36.078009,-79.928941
-,North Carolina,36.064231,-79.930746
-,North Carolina,34.222056,-77.948926
-,North Carolina,34.209397,-77.952119
-,North Carolina,34.220441,-77.948653
-,North Carolina,35.551107,-78.299835
-,North Carolina,34.201769,-77.952931
-,North Carolina,35.551516,-78.310778
-,Rhode Island,41.788213,-71.343464
-,Rhode Island,41.832266,-71.371354
+﻿Name,Location,Lat,Lon
+,,36.07,-79.93602
+,,39.36,-77.040195
+,,37.39,-79.736822
+Petro Star Valdez Refinery,Alaska,61.08,-146.251729
+Valdez,Alaska,61.08,-146.391207
+Trans-Alaska Pipeline Pump Station 7,Alaska,65.31,-148.280545
+,Washington,47.05,-122.899226
+US Oil & Refining Co,Washington,47.26,-122.394282
+BP Cherry Point Refinery,Washington,48.88,-122.731644
+Base Operation Center (BOC),Alaska,70.29,-148.705197
+Buckeye Terminals,Ohio,39.96,-83.095298
+Sunoco Terminal,Ohio,39.97,-83.102468
+Marathon Petroleum Corporation,Ohio,39.97,-83.103016
+,Ohio,41.68,-83.471688
+,Ohio,41.67,-83.464928
+,Ohio,41.63,-83.489353
+,Ohio,41.69,-83.442395
+Sunoco Logistics Partners LP,Ohio,41.63,-83.491516
+,Maryland,39.23,-76.572246
+,Maryland,39.23,-76.568156
+,Maryland,39.24,-76.565737
+,Maryland,39.23,-76.562709
+,Maryland,39.24,-76.577151
+,Maryland,39.24,-76.577973
+,Maryland,39.21,-76.590967
+,Maryland,39.21,-76.584395
+,Maryland,39.21,-76.570628
+,Maryland,39.18,-76.527184
+,Delaware,39.71,-75.530267
+,Delaware,39.74,-75.504821
+,Delaware,39.59,-75.624256
+,Pennsylvania,40.5,80.09681
+,Pennsylvania,40.5,-80.083405
+,Connecticut,41.29,-72.903622
+,"Pittsburgh, PA",40.48,-80.046161
+,Delaware,39.58,-75.619681
+,Delaware,39.59,-75.637563
+,Pennsylvania,40.52,-80.175821
+,Pennsylvania,40.48,-80.051518
+,Connecticut,41.3,-72.899884
+,Connecticut,41.33,-72.893525
+,Connecticut,41.3,-72.889844
+,Connecticut,41.3,-72.909557
+,Connecticut,41.29,-72.898194
+,Connecticut,41.28,-72.901224
+,Connecticut,41.72,-72.647296
+,Connecticut,41.29,-72.905163
+,Connecticut,41.72,-72.647296
+,Connecticut,41.34,-72.078319
+,Tennessee,35.94,-83.93421
+PBF Logistics,Tennessee,35.96,-83.990744
+,Tennessee,35.96,-84.002772
+,Tennessee,35.96,-83.909212
+,Tennessee,35.96,-84.003847
+,Tennessee,35.96,-83.997384
+,Tennessee,35.96,-83.997663
+,Tennessee,35.96,-83.99014
+,North Carolina,36.08,-79.928941
+,North Carolina,36.08,-79.919415
+,North Carolina,36.08,-79.928941
+,North Carolina,36.06,-79.930746
+,North Carolina,34.22,-77.948926
+,North Carolina,34.21,-77.952119
+,North Carolina,34.22,-77.948653
+,North Carolina,35.55,-78.299835
+,North Carolina,34.2,-77.952931
+,North Carolina,35.55,-78.310778
+,Rhode Island,41.79,-71.343464
+,Rhode Island,41.83,-71.371354
+BP Whiting Refinery Chicago,Illinois,41.66,-87.484662
+,Illinois,41.61,-87.439818
+,Illinois,41.63,-87.439941
+,Virgina ,36.82,-76.285153
+,Virgina ,36.79,-76.29951
+,Virgina ,36.89,-76.343903
+,Wisconsin,46.68,-92.059973
+,Wisconsin,46.7,-92.071699
+,,27.94,-82.437986
+,Kentucky,38.38,-82.596144
+,"Pittsburgh, PA",40.5,-80.096017
+,"Pittsburgh, PA",40.53,-80.180298
+,"Pittsburgh, PA",40.47,-80.049576
+,"Nashville, TN",36.2,-86.808755
+,"Nashville, TN",36.17,-86.860047
+,"Nashville, TN",36.17,-86.850024
+,"Helena-West Helena, AR",34.5,-90.596595
+,"Richmond, VA",37.52,-77.433189
+,"Richmond, VA",37.51,-77.428856
+,"Richmond, VA",37.46,-77.433051
+Chevron Pascagoula Refinery,"Pascagoula, Mississippi",30.35,-88.488093
+Chevron Pascagoula Refinery,"Pascagoula, Mississippi",30.35,-88.482144
