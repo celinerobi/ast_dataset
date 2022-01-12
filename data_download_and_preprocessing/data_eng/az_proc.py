@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
-import cv2
+#import cv2
 
 # Image processing files
 import matplotlib
@@ -217,38 +217,35 @@ def get_coordinates_from_address(address):
 # Functions to retrieve filepathways from EIA HFID datasources 
 """
 
-# %%
+# %%      
 def lons_lat_to_filepaths(lons, lats, index):
     """
     Calculate file paths given lat and lat
     """
-    
+    all_paths = np.empty(shape=(1,8))
     for i in tqdm(range(len(lons))):
         naip_file_pathways = index.lookup_tile(lats[i], lons[i])
-        print(naip_file_pathways)
-        """
-        if i == 0: #0 is to intialize numpy array
-            if naip_file_pathways != None:
-                for j in range(len(naip_file_pathways)):
-                    if j == 0:
-                        tmp = naip_file_pathways[j].split('/')
-                        tmp = np.hstack((tmp, naip_file_pathways[j].split('/')[3].split("_")[1]))    
-                        file_pathways = np.array(tmp)
-                    else:
-                        tmp = naip_file_pathways[j].split('/')
-                        tmp = np.hstack((tmp, naip_file_pathways[j].split('/')[3].split("_")[1]))
-                        file_pathways = np.vstack((file_pathways, tmp))
-        else:
-            if naip_file_pathways != None:
-                for file in naip_file_pathways:
-                    tmp = file.split('/')
-                    tmp = np.hstack((tmp, file.split('/')[3].split("_")[1]))
-                    file_pathways = np.vstack((file_pathways, tmp))
+        if naip_file_pathways != None:
+            select_path = []
+            for ii in range(len(naip_file_pathways)):
+                tmp = naip_file_pathways[ii].split('/')
+                tmp = np.hstack((tmp, naip_file_pathways[ii].split('/')[3].split("_")[1]))
+                iii = iter(tmp[5].split("_",4))
+                tmp = np.hstack((tmp, list((map("_".join,zip(*[iii]*4)) ))))
+                select_path.append(tmp)
+            select_path = np.array(select_path)
+            select_path = select_path[select_path[:,2] >= "2018"] #filter out years to get the most recent data that will include the highest resolution data
+
+            select_path = select_path[(select_path[:,6] == "60cm") | (select_path[:,6] == "060cm")] #select only pathways with 60cm
+                        
+            all_paths = np.vstack((all_paths, select_path)) #add to the rest of the paths
+            
+    file_pathways = np.delete(all_paths, 0, axis=0)
     
     file_pathways = np.unique(file_pathways, axis=0) #select unique values
-    file_pathways = file_pathways[np.where(file_pathways[:,6] ==  '60cm')]  #select only pathways with 60cm
     return file_pathways
-    """
+
+
 def filepaths_to_tile_name_tile_url(file_pathways):
     """
     Determine the tile name and url for a given file pathway
