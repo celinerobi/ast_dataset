@@ -23,6 +23,8 @@ def get_args_parse():
                         help='path to parent directory, holding the annotation directory.')
     parser.add_argument('--original', type=bool, default=False,
                         help='use original (True), or corrected (False) annotations')
+    parser.add_argument('--include_tiles', type=bool, default=False, 
+                        help='include tiles (False), or do not include tiles (True) annotations')
     args = parser.parse_args()
     return args
 
@@ -31,7 +33,7 @@ def main(args):
     sub_directories = list()
     for annotator_directory in ap.list_of_sub_directories(args.parent_directory):
         for root,dirs,files in os.walk(annotator_directory):
-            if "chips" in dirs: #excludes the annotations from Jackson that need to be reformated
+            if "chips" in dirs:
                 sub_directories.append(root)
 
     ### Move the annotations + images 
@@ -48,7 +50,7 @@ def main(args):
         dist = ap.annotator(sub_directory)
         dist.state_dcc_directory(args.parent_directory)
         dist.make_subdirectories()    
-        annotations, images = dist.move_images_annotations_to_complete_dataset(args.original)
+        annotations, images = dist.move_images_annotations_to_complete_dataset(args.include_tiles, args.original)
 
         counter_annotations += annotations # count the number of annotations 
         counter_images += images #count the number of images

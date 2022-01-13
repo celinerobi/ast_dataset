@@ -27,7 +27,7 @@ import pandas as pd
 import numpy as np
 import progressbar # pip install progressbar2, not progressbar
 from tqdm import tqdm
-#import cv2
+import cv2
 
 # Image processing files
 import matplotlib
@@ -575,15 +575,25 @@ class annotator:
             tree.write(os.path.join(self.chips_positive_corrected_xml_dir, xml_file))       
             
             
-    def move_images_annotations_to_complete_dataset(self, original = True):
-        """seperate out positive chips/annotations into specific directory.
+    def move_images_annotations_to_complete_dataset(self, include_tiles = False, original = True):
+        """seperate out all of the positive chips, annotations, and conditionally tiles from one directory into a new folder.
+        Args:
+            file_loc (str): The file location of the spreadsheet
+            include_tiles (bool; default = False): Specifies whether the full tiles should be moved
+            original  include_tiles (bool; default = True): Specifies whether the original annotation in chips positive or the corrected 
+                                                          annotation in chips_positive_xml should be used
+
+        Returns:
+            len(annotations): number of annotations
+            len(images): number of images
         """
         #make a complete dataset
         self.complete_dataset_xml_dir = os.path.join(self.dcc_directory,"complete_dataset",'chips_positive_xml') 
         os.makedirs(self.complete_dataset_xml_dir, exist_ok=True) #directory to hold entire dataset annotations
         self.complete_dataset_chips_dir = os.path.join(self.dcc_directory,"complete_dataset","chips_positive") 
         os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
-        
+       
+        #Move annotations
         if original:
             annotations_path = self.chips_positive_corrected_xml_dir
             annotations = os.listdir(annotations_path)
@@ -591,18 +601,28 @@ class annotator:
         if not original:
             annotations_path = self.chips_xml_dir
             annotations = os.listdir(annotations_path)  
-            
+        
         for a in annotations:
             #copy annotations 
             shutil.copy(os.path.join(annotations_path, a), self.complete_dataset_xml_dir)
         
+        #Move images
         images = os.listdir(self.chips_positive_dir)
         for i in images:
             #move images
             shutil.copy(os.path.join(self.chips_positive_dir, i), self.complete_dataset_chips_dir)
-            
-        print(len(annotations),len(images))
         
+        #Move tiles 
+        if include_tiles:
+            self.complete_dataset_tile_dir = os.path.join(self.dcc_directory,"complete_dataset","tiles") 
+            os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
+                    
+            tiles = os.listdir(self.tiles_dir)
+            for t in tiles:
+                #move images
+                shutil.copy(os.path.join(self.tiles_dir, t), self.complete_dataset_tile_dir)
+        
+        print(len(annotations),len(images))
         return len(annotations), len(images)
 """
 Find file paths
@@ -853,8 +873,8 @@ def verification_folders(home_directory, folder_name, annotator_allocation, set_
     print(folder_name[0])
     ##create verification subfolder for each group
     os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number), exist_ok = True) #verification folder for each group
-    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips"), exist_ok = True) #image sub folder             
-    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips_xml"), exist_ok = True) #xml sub folder
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips_positive"), exist_ok = True) #image sub folder             
+    os.makedirs(os.path.join(verification_dir, "verify_" + folder_name[0]+ "_" + set_number, "chips_positive_xml"), exist_ok = True) #xml sub folder
     folder_annotator_list = [folder_name[0], annotator_allocation]
     return(folder_annotator_list, verification_dir)
 

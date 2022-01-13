@@ -40,7 +40,7 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
 Example:
 python labelwork_distribution_dcc.py --number_of_tiles 8 --annotation_directory Kang_10 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
-python labelwork_distribution_dcc.py --number_of_tiles 6 --annotation_directory set_5 --parent_directory C:\chip_allocation --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 12 --annotation_directory Kang_12 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\uncomplete_sets --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
 ### Naming Convention:
 #### Tile Naming Convention:
@@ -111,7 +111,7 @@ python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotat
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
-python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set1\unverified_images\student_reviewed_unverified_images
+python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\verified --original True
 ## 6. Standardize Object Labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              
