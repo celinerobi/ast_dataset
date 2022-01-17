@@ -40,7 +40,10 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
 Example:
 python labelwork_distribution_dcc.py --number_of_tiles 8 --annotation_directory Kang_10 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
-python labelwork_distribution_dcc.py --number_of_tiles 12 --annotation_directory Kang_12 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\uncomplete_sets --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 4 --annotation_directory set6 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\uncomplete_sets --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+
+
+
 
 ### Naming Convention:
 #### Tile Naming Convention:
@@ -75,9 +78,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student7_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student10_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory Celine_2 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\Celine
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student11_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\
 
 python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
 
