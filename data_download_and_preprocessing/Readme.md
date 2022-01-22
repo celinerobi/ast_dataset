@@ -78,11 +78,12 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student10_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student11_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\
 
 python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
+Z:\labelwork\
 
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
