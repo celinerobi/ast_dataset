@@ -138,7 +138,7 @@ def tiles_in_complete_dataset(path_to_tiles_folder_complete_dataset):
         tiles_downloaded_without_ext_list.append(os.path.splitext(tile)[0]) #name of tif with the extension removed
     return(np.array(tiles_downloaded_with_ext_list), np.array(tiles_downloaded_without_ext_list))
 
-def download_tiles_of_verified_images(path_positive_images_complete_dataset, tiles_downloaded, tile_names_tile_urls_complete_array):
+def download_tiles_of_verified_images(path_positive_images_complete_dataset, path_to_tiles_folder_complete_dataset, tiles_downloaded, tile_names_tile_urls_complete_array):
     """
     # Download remaining tiles that correspond to ONLY to verified images
     #Gather the locations of tiles that have already been downlaoded and verified 
@@ -161,31 +161,40 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
         if tile not in tiles_downloaded: #index over the tiles that should be downloded
             tile_names_to_download.append(tile)
             
-    # Download Tiles        
+    # Download Tiles  
+    destination_filenames = []
     for tile in tile_names_to_download:
-    ### download the tiles if they are not in the tiles folder 
-    tile_name = tile.split("_",4)[4] #+ ".tif" #get the name of the tile that is to be downloaded
-    tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]  #check if the tile name is contained in the string of complete arrays
-    tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] # get tile url
-    ### Download tile
-    destination_filenames.append(ap.download_url(tile_url, path_to_tiles_folder_complete_dataset,
-                                                         progress_updater=ap.DownloadProgressBar()))
-
+        
+        ### download the tiles if they are not in the tiles folder 
+        tile_name = tile.split("_",4)[4] #+ ".tif" #get the name of the tile that is to be downloaded
+        #check if the tile name is contained in the string of complete arrays
+        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]          
+        if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
+        elif len(np.unique(tile_name)) > 1: # Multiple (different tiles) possibly the same tiles in different states, possible different years
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1]# get tile url
+        elif (len(tile_name) > 1): #Multiple different tile names that are the same, probably different naip storage locations
+            # get tile url from the second entry 
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
+         
+        ### Download tile
+        destination_filenames.append(ap.download_url(tile_url, path_to_tiles_folder_complete_dataset,
+                                                             progress_updater=ap.DownloadProgressBar()))
+        
     # Rename Tiles 
     for destination_filepath in destination_filenames: 
         tile_dir = destination_filepath.rsplit("\\",1)[0]
         tile_name = destination_filepath.rsplit("\\",1)[1]
         tile_name_split = tile_name.split('_')
-        new_tile_path = os.path.join(tile_dir, tile_name_split[6]+'_'+tile_name_split[7]+'_'+tile_name_split[8]+'_'+tile_name_split[9]+''+  \
-                                                tile_name_split[10]+'_'+tile_name_split[11]+'_'+tile_name_split[12]+'_'+tile_name_split[13]+'_'+  \
-                                                tile_name_split[14]+'_'+tile_name_split[15].split(".")[0]+".tif")
+        new_tile_path = os.path.join(tile_dir, tile_name_split[6]+ '_' + tile_name_split[7] + '_' + tile_name_split[8] + '_' + \
+                                     tile_name_split[9] + tile_name_split[10] + '_' + tile_name_split[11] + '_' + \
+                                     tile_name_split[12] + '_' + tile_name_split[13] + '_' + tile_name_split[14] + '_' + \
+                                     tile_name_split[15].split(".")[0]+".tif")
 
         if os.path.isfile(new_tile_path):
             print('Bypassing download of already-downloaded file {}'.format(os.path.basename(new_tile_path)))
-
         else:
             os.rename(destination_filepath, new_tile_path)
-
 
 ##
 def image_characteristics(tiles_dir, unique_positive_jpgs):
