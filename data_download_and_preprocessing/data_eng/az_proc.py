@@ -437,7 +437,26 @@ class annotator:
             
             else:
                 os.rename(old_tile_path, new_tile_path)
+                
+    def tile_rename_standard(self):
+        """Rename all the tiles into the standard format outlined in repo readme 
+        """
 
+        self.tile_names = os.listdir(self.tiles_dir) #get a list of all of the tiles in tiles directory
+        print(self.tile_names)
+        
+        for tile_name in self.tile_names: 
+            tile_name_split = tile_name.split('_')
+            old_tile_path = os.path.join(self.tiles_dir, tile_name)
+            new_tile_path = os.path.join(self.tiles_dir, tile_name_split[6]+'_'+tile_name_split[7]+'_'+tile_name_split[8]+'_'+tile_name_split[9]+'_'+  \
+                                                    tile_name_split[10]+'_'+tile_name_split[11]+'_'+tile_name_split[12]+'_'+tile_name_split[13]+'_'+  \
+                                                    tile_name_split[14]+'_'+tile_name_split[15].split(".")[0]+".tif")
+
+            if os.path.isfile(new_tile_path):
+                print('Bypassing download of already-downloaded file {}'.format(os.path.basename(new_tile_path)))
+            
+            else:
+                os.rename(old_tile_path, new_tile_path)
     def chip_tiles(self):
         """Segment tiles into 512 x 512 pixel chips, preserving resolution
         """
