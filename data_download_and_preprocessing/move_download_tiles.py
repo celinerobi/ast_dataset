@@ -67,10 +67,11 @@ def main(args):
     tiles_downloaded_with_ext_list, tiles_downloaded_without_ext_list = fc.tiles_in_complete_dataset(path_to_tiles_folder_complete_dataset)
 
     #Download tiles
-    fc.download_tiles_of_verified_images(path_positive_images_complete_dataset, 
-                                         path_to_tiles_folder_complete_dataset, 
-                                         tiles_downloaded_without_ext_list, 
-                                         tile_names_tile_urls_complete_array)
+    tile_names,tile_urls,destination_filenames = fc.download_tiles_of_verified_images(path_positive_images_complete_dataset, 
+                                                 path_to_tiles_folder_complete_dataset, 
+                                                 tiles_downloaded_without_ext_list, 
+                                                 tile_names_tile_urls_complete_array)
+    np.save("downloaded_tiles_info.npy", np.array((tile_names,tile_urls,destination_filenames)))
 
 if __name__ == '__main__':
     ### Get the arguments 

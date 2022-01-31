@@ -27,6 +27,51 @@ import math
 from glob import glob
 from tqdm.notebook import tqdm_notebook
 
+def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile_path, tile_names_tile_urls_complete_array):
+    #remove thumbs
+    remove_thumbs(tile_path)
+    tif_paths = glob(tile_path + "/**/*.tif", recursive = True)
+    
+    tile_names = []
+    tile_urls = []
+    file_names = [] 
+    tile_names_without_year = []  
+    
+    for path in tif_paths:
+        base = os.path.basename(path)
+        tile_name = os.path.splitext(base)[0] #name of tif with the extension removed
+        #check if the tile name is contained in the string of complete arrays
+        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]      
+        
+        if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
+        elif len(np.unique(tile_name)) > 1: # Multiple (different tiles) possibly the same tiles in different states, possible different years
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1]# get tile url
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
+        elif (len(tile_name) > 1): #Multiple different tile names that are the same, probably different naip storage locations
+            # get tile url from the second entry 
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
+            tile_names.append(tile_name[1])
+            tile_urls.append(tile_url)
+
+        #get file name
+        file_name = tile_name[0]
+        if tile_name[0].count("_") > 5:
+            tile_name = tile_name[0].rsplit("_",1)[0]
+            file_name = tile_name + ".tif"
+        file_names.append(file_name)
+        ### Download tile
+        
+    #get the tile_names without the year
+    for file_name in file_names:
+        tile_names_without_year.append(file_name.rsplit("_",1)[0])
+    
+    return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
+
+
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names
     tile_names = []
@@ -60,10 +105,10 @@ def unique_formatted_standard_tile_names(tile_names_tile_urls_complete_array):
     
     return(tile_names_tile_urls_complete_array_unique_standard_tile_names, tile_names_tile_urls_complete_array_unique_formatted_tile_names)
 
-def jpg_path_to_tile_name_formatted(tile_paths):
+def jpg_path_to_tile_name_formatted(jpg_paths):
     tile_names = []
-    for tile_path in tile_paths:
-        base = os.path.basename(tile_path)
+    for jpg_path in jpg_paths:
+        base = os.path.basename(jpg_path)
         jpg = os.path.splitext(base)[0] #name of tif with the extension removed
         tile_name_formated_name = jpg.rsplit("_",1)[0] #name of tif with the extension removed
         tile_names.append(tile_name_formated_name)
@@ -79,14 +124,15 @@ def jpg_path_to_jpg_name_formatted(jpg_paths):
         jpgs_without_ext.append(jpg_without_ext)
     return(jpgs_ext, jpgs_without_ext)
 
-def remove_thumbs(path_to_folder_containing_thumbs):
+def remove_thumbs(path_to_folder_containing_images):
     """ Remove Thumbs.db file from a given folder
     Args: 
-    path_to_folder_containing_thumbs(str): path to folder containing thumbs.db
+    path_to_folder_containing_images(str): path to folder containing images
     Returns:
     None
     """
-    os.remove(glob(path_to_folder_containing_thumbs + "/*.db", recursive = True)[0])
+    if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
+        os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
     
 def remove_thumbs_all_positive_chips(parent_directory):
     """ Remove Thumbs.db file from all chips_positive folders in parent directory
@@ -98,8 +144,7 @@ def remove_thumbs_all_positive_chips(parent_directory):
     for r, d, f in os.walk(parent_directory):
         folder_name = os.path.basename(r) #identify folder name
         if 'chips_positive' == folder_name: #Specify folders that contain positive chips
-            if len(glob(r + "/*.db", recursive = True)) > 0:
-                remove_thumbs(r)
+            remove_thumbs(r)
     
 def unique_positive_jpgs_from_parent_directory(parent_directory):
     files = []
@@ -178,6 +223,8 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
     print("the number of tiles that need to be downloaded:", len(tile_names_to_download))
     
     # Download Tiles  
+    tile_names = []
+    tile_urls = []
     destination_filenames = []
     for tile in tile_names_to_download:
         
@@ -186,12 +233,17 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
         tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]          
         if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
             tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
         elif len(np.unique(tile_name)) > 1: # Multiple (different tiles) possibly the same tiles in different states, possible different years
             tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1]# get tile url
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
         elif (len(tile_name) > 1): #Multiple different tile names that are the same, probably different naip storage locations
             # get tile url from the second entry 
             tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
-        
+            tile_names.append(tile_name[1])
+            tile_urls.append(tile_url)
         #get file name
         file_name = tile_name[0]
         if tile_name[0].count("_") > 5:
@@ -202,27 +254,8 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
         destination_filenames.append(ap.download_url(tile_url, tiles_complete_dataset_path,
                                                      destination_filename = file_name,       
                                                              progress_updater=ap.DownloadProgressBar()))
-        """
-        #destination_filenames.append(ap.download_url(tile_url, tiles_complete_dataset_path,
-        #                                             destination_filename = tile_name,       
-                                                             progress_updater=ap.DownloadProgressBar()))
-        
-    # Rename Tiles 
-    for destination_filepath in destination_filenames: 
-        tile_dir = destination_filepath.rsplit("\\",1)[0]
-        tile_name = destination_filepath.rsplit("\\",1)[1]
-        tile_name_split = tile_name.split('_')
-        new_tile_path = os.path.join(tile_dir, tile_name_split[6]+ '_' + tile_name_split[7] + '_' + tile_name_split[8] + '_' + \
-                                     tile_name_split[9] + '_' + tile_name_split[10] + '_' + tile_name_split[11] + '_' + \
-                                     tile_name_split[12] + '_' + tile_name_split[13] + '_' + tile_name_split[14] + '_' + \
-                                     tile_name_split[15].split(".")[0]+".tif")
+    return(tile_names,tile_urls,destination_filenames)
 
-
-        if os.path.isfile(new_tile_path):
-            print('Bypassing download of already-downloaded file {}'.format(os.path.basename(new_tile_path)))
-        else:
-            os.rename(destination_filepath, new_tile_path)
-        """
 ##
 def image_characteristics(tiles_dir, unique_positive_jpgs):
     """
