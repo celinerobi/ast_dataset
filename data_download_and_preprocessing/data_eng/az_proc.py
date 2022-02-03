@@ -57,6 +57,8 @@ Azure Functions
 
 class DownloadProgressBar():
     """
+    A progressbar to show the completed percentage and download speed for each image downloaded using urlretrieve.
+
     https://stackoverflow.com/questions/37748105/how-to-use-progressbar-module-with-urlretrieve
     """
     
@@ -160,15 +162,22 @@ def download_url_no_destination_folder(url, destination_filename=None, progress_
 
 def download_url(url, destination_folder, destination_filename=None, progress_updater=None, force_download=False):
     """
-    Download a URL to a temporary file
+    Download a URL to a a file
+    Args:
+    url(str): url to download
+    destination_folder(str): directory to download folder
+    destination_filename(str): the name for each of files to download
+    return:
+    destination_filename
     """
     
     # This is not intended to guarantee uniqueness, we just know it happens to guarantee
     # uniqueness for this application.
+    if destination_filename is not None:
+        destination_filename = os.path.join(destination_folder, destination_filename)
     if destination_filename is None:
         url_as_filename = url.replace('://', '_').replace('/', '_') 
         destination_filename = os.path.join(destination_folder, url_as_filename)
-        
     if os.path.isfile(destination_filename):
         print('Bypassing download of already-downloaded file {}'.format(os.path.basename(url)))
         return destination_filename
@@ -177,7 +186,7 @@ def download_url(url, destination_folder, destination_filename=None, progress_up
     assert(os.path.isfile(destination_filename))
     nBytes = os.path.getsize(destination_filename)
     print('...done, {} bytes.'.format(nBytes))
-    
+
     return destination_filename
 
 def display_naip_tile(filename):

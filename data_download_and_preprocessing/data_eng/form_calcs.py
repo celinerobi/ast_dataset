@@ -25,52 +25,7 @@ import collections
 import cv2
 import math
 from glob import glob
-from tqdm.notebook import tqdm_notebook
-
-def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile_path, tile_names_tile_urls_complete_array):
-    #remove thumbs
-    remove_thumbs(tile_path)
-    tif_paths = glob(tile_path + "/**/*.tif", recursive = True)
-    
-    tile_names = []
-    tile_urls = []
-    file_names = [] 
-    tile_names_without_year = []  
-    
-    for path in tif_paths:
-        base = os.path.basename(path)
-        tile_name = os.path.splitext(base)[0] #name of tif with the extension removed
-        #check if the tile name is contained in the string of complete arrays
-        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]      
-        
-        if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
-            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
-            tile_names.append(tile_name[0])
-            tile_urls.append(tile_url)
-        elif len(np.unique(tile_name)) > 1: # Multiple (different tiles) possibly the same tiles in different states, possible different years
-            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1]# get tile url
-            tile_names.append(tile_name[0])
-            tile_urls.append(tile_url)
-        elif (len(tile_name) > 1): #Multiple different tile names that are the same, probably different naip storage locations
-            # get tile url from the second entry 
-            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
-            tile_names.append(tile_name[1])
-            tile_urls.append(tile_url)
-
-        #get file name
-        file_name = tile_name[0]
-        if tile_name[0].count("_") > 5:
-            tile_name = tile_name[0].rsplit("_",1)[0]
-            file_name = tile_name + ".tif"
-        file_names.append(file_name)
-        ### Download tile
-        
-    #get the tile_names without the year
-    for file_name in file_names:
-        tile_names_without_year.append(file_name.rsplit("_",1)[0])
-    
-    return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
-
+import tqdm
 
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names
@@ -152,7 +107,7 @@ def unique_positive_jpgs_from_parent_directory(parent_directory):
     counter = 0
     # r=root, d=directories, f = files
     # https://mkyong.com/python/python-how-to-list-all-files-in-a-directory/
-    for r, d, f in os.walk(parent_directory):
+    for r, d, f in tqdm.tqdm(os.walk(parent_directory)):
         folder_name = os.path.basename(r) #identify folder name
         if 'chips_positive' == folder_name: #Specify folders that contain positive chips
             for file in f:
@@ -196,41 +151,55 @@ def tiles_in_complete_dataset(tiles_complete_dataset_path):
         tiles_downloaded_without_ext_list.append(os.path.splitext(tile)[0]) #name of tif with the extension removed
     return(np.array(tiles_downloaded_with_ext_list), np.array(tiles_downloaded_without_ext_list))
 
-def download_tiles_of_verified_images(path_positive_images_complete_dataset, tiles_complete_dataset_path, tiles_downloaded, tile_names_tile_urls_complete_array):
+def jpg_paths_to_tiles_without_ext(jpg_paths):
     """
-    # Download remaining tiles that correspond to ONLY to verified images
-    #Gather the locations of tiles that have already been downlaoded and verified 
+    Determine which tiles corresponding to jpg that have been annotated #jpg_tiles
+    Get a numpy array of the unique standard tile names corresponding to a list of jpg paths
+    Args:
+    jpgs_paths(list): list of jpg paths
+    Returns:
+    tiles(numpy): 
     """
-    jpg_path_positive_images_complete_dataset = glob(path_positive_images_complete_dataset + "/*.jpg", recursive = True)
-    print("number of positive and verified images:", len(jpg_path_positive_images_complete_dataset))
-
-    # Determine which tiles corresponding to jpg that have been annotated #jpg_tiles
-    tiles_of_verified_positive_jpg = []
-    for path in jpg_path_positive_images_complete_dataset:
+    tiles = []
+    for path in jpg_paths:
         base = os.path.basename(path)
         img = os.path.splitext(base)[0] #name of tif with the extension removed
         tile = img.rsplit("_",1)[0]
         tile = tile.split("_",4)[4] #get the tile names to remove duplicates from being downloaded
-        tiles_of_verified_positive_jpg.append(tile)
-    tiles_of_verified_positive_jpg = np.unique(tiles_of_verified_positive_jpg)
-    print("the number of tiles corresponding to verified images:", len(tiles_of_verified_positive_jpg))
+        tiles.append(tile)
+    return(np.unique(tiles))
+
+def download_tiles_of_verified_images(positive_images_complete_dataset_path, tiles_complete_dataset_path, tiles_downloaded, tile_names_tile_urls_complete_array):
+    """
+    # Download remaining tiles that correspond to ONLY to verified images
+    #Gather the locations of tiles that have already been downlaoded and verified 
+    """
+    # Make a list of the tiles moved to completed dataset
+    tiles_downloaded_with_ext, tiles_downloaded = tiles_in_complete_dataset(tiles_complete_dataset_path)
+    
+    positive_jpg_paths = glob(positive_images_complete_dataset_path + "/*.jpg", recursive = True)
+    print("number of positive and verified images:", len(positive_jpg_paths))
+    
+    #  Determine which tiles corresponding to jpg that have been annotated #jpg_tiles
+    positive_jpg_tiles = jpg_paths_to_tiles_without_ext(positive_jpg_paths)
+    print("the number of tiles corresponding to verified images:", len(positive_jpg_tiles))
 
     # Identify tiles that have not already been downloaded
-    tile_names_to_download = []
-    for tile in tiles_of_verified_positive_jpg: #index over the downloaded tiled
+    tiles_to_download = []
+    for tile in positive_jpg_tiles: #index over the downloaded tiled
         if tile not in tiles_downloaded: #index over the tiles that should be downloded
-            tile_names_to_download.append(tile)
-    print("the number of tiles that need to be downloaded:", len(tile_names_to_download))
+            tiles_to_download.append(tile)
+    print("the number of tiles that need to be downloaded:", len(tiles_to_download))
     
     # Download Tiles  
     tile_names = []
     tile_urls = []
-    destination_filenames = []
-    for tile in tile_names_to_download:
-        
+    file_names = []
+    tile_names_without_year = []
+    for tile in tiles_to_download:   
         ### download the tiles if they are not in the tiles folder 
         #check if the tile name is contained in the string of complete arrays
-        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]          
+        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile in string]          
         if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
             tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
             tile_names.append(tile_name[0])
@@ -244,6 +213,7 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
             tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
             tile_names.append(tile_name[1])
             tile_urls.append(tile_url)
+            
         #get file name
         file_name = tile_name[0]
         if tile_name[0].count("_") > 5:
@@ -251,12 +221,62 @@ def download_tiles_of_verified_images(path_positive_images_complete_dataset, til
             file_name = tile_name + ".tif"
         print(file_name)
         ### Download tile
-        destination_filenames.append(ap.download_url(tile_url, tiles_complete_dataset_path,
+        file_names.append(ap.download_url(tile_url, tiles_complete_dataset_path,
                                                      destination_filename = file_name,       
                                                              progress_updater=ap.DownloadProgressBar()))
-    return(tile_names,tile_urls,destination_filenames)
+    #get the tile_names without the year
+    for file_name in file_names:
+        tile_names_without_year.append(file_name.rsplit("_",1)[0])
+        
+    return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
+
+
+def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile_path, tile_names_tile_urls_complete_array):
+    #remove thumbs
+    remove_thumbs(tile_path)
+    tif_paths = glob(tile_path + "/**/*.tif", recursive = True)
+    
+    tile_names = []
+    tile_urls = []
+    file_names = [] 
+    tile_names_without_year = []  
+    
+    for path in tif_paths:
+        base = os.path.basename(path)
+        tile_name = os.path.splitext(base)[0] #name of tif with the extension removed
+        #check if the tile name is contained in the string of complete arrays
+        tile_name = [string for string in tile_names_tile_urls_complete_array[:,0] if tile_name in string]      
+        
+        if len(tile_name) == 1: #A single tile name # get tile url from the first (only) entry
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1] 
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
+        elif len(np.unique(tile_name)) > 1: # Multiple (different tiles) possibly the same tiles in different states, possible different years
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[0]][0][1]# get tile url
+            tile_names.append(tile_name[0])
+            tile_urls.append(tile_url)
+        elif (len(tile_name) > 1): #Multiple different tile names that are the same, probably different naip storage locations
+            # get tile url from the second entry 
+            tile_url = tile_names_tile_urls_complete_array[tile_names_tile_urls_complete_array[:,0]==tile_name[1]][1][1] 
+            tile_names.append(tile_name[1])
+            tile_urls.append(tile_url)
+
+        #get file name
+        file_name = tile_name[0]
+        if tile_name[0].count("_") > 5:
+            tile_name = tile_name[0].rsplit("_",1)[0]
+            file_name = tile_name + ".tif"
+        file_names.append(file_name)
+        ### Download tile
+        
+    #get the tile_names without the year
+    for file_name in file_names:
+        tile_names_without_year.append(file_name.rsplit("_",1)[0])
+    
+    return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
 
 ##
+
 def image_characteristics(tiles_dir, unique_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
@@ -280,7 +300,7 @@ def image_characteristics(tiles_dir, unique_positive_jpgs):
     col_indicies = []
     full_path  = []
     root = []
-    for tile_name in tqdm_notebook(os.listdir(tiles_dir)): #index over the tiles in the tiles_dir 
+    for tile_name in tqdm.tqdm(os.listdir(tiles_dir)): #index over the tiles in the tiles_dir 
         file_name, ext = os.path.splitext(tile_name) # File name
         count = 1      
         
@@ -294,6 +314,7 @@ def image_characteristics(tiles_dir, unique_positive_jpgs):
 
         for x in range(0, col_index):
             for y in range(0, row_index):
+                #Tile names no longer match chip file names!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 six_digit_chip_name_temp = file_name+ '_'+ str(count).zfill(6) + '.jpg'
                 count += 1  
                 if six_digit_chip_name_temp in unique_positive_jpgs[:,0]: #only record values for images that are annotated
@@ -358,3 +379,87 @@ def rename_formatted_tiles(tiles_complete_dataset_path):
                 
 #fc.remove_thumbs(os.path.join(parent_directory, complete_dataset_path,"tiles"))
 #fc.rename_formatted_tiles(os.path.join(parent_directory, complete_dataset_path, "tiles"))
+
+def formatted_chip_names_to_standard_names(chip):
+    """
+    """
+    chip = os.path.splitext(chip)[0]#remove ext
+    chip_name, chip_number = chip.rsplit("_",1)
+    tile_name = chip_name.split("_",4)[4]
+    if tile_name.count("_") > 5:
+        tile_name = tile_name.rsplit("_",1)[0]
+    standard_chip_name = tile_name + "_"+ chip_number 
+    return(standard_chip_name)
+
+def rename_formatted_chips_images_xmls(complete_dataset_path):
+    """
+    Rename chips (jps/xmls)
+    """
+    positive_images_path = os.path.join(complete_dataset_path,"chips_positive")
+    for chip in os.listdir(positive_images_path):
+        #format tile_names to only include inital capture date 1/20
+        if chip.count("_") > 6:
+            #old path
+            old_chip_path = os.path.join(positive_images_path, chip)
+            
+            #new name
+            new_chip_name = formatted_chip_names_to_standard_names(chip)
+            
+            #copy images
+            if not os.path.exists(os.path.join(complete_dataset_path,"standard_chips_positive", new_chip_name+".jpg")): #If the new tile path does not exist, convert the tile to standard format
+                shutil.copyfile(old_chip_path, os.path.join(complete_dataset_path,"standard_chips_positive", new_chip_name+".jpg"))                
+            elif not os.path.exists(os.path.join(complete_dataset_path,"dups_chips_positive", new_chip_name+".jpg")): #If the new tile path does not exist, convert the tile to standard format
+                shutil.copyfile(old_chip_path, os.path.join(complete_dataset_path,"dups_chips_positive", new_chip_name+".jpg"))                
+            else:
+                print("so many dups")
+                
+            #copy annotations
+            if not os.path.exists(os.path.join(complete_dataset_path,"standard_chips_positive_xml", new_chip_name+".xml")): #If the new tile path does not exist, convert the tile to standard format
+                shutil.copyfile(old_chip_path, os.path.join(complete_dataset_path,"standard_chips_positive_xml", new_chip_name+".xml"))
+            elif not os.path.exists(os.path.join(complete_dataset_path,"dups_chips_positive_xml", new_chip_name+".xml")): #If the new tile path does not exist, convert the tile to standard format
+                shutil.copyfile(old_chip_path, os.path.join(complete_dataset_path,"dups_chips_positive_xml", new_chip_name+".xml"))                
+            else:
+                print("so many dups")
+            
+            #if os.path.exists(new_tile_path) and os.path.exists(old_tile_path): #If the new tile path already exists, delete the old tile path (if it still exists)
+            #    os.remove(old_tile_path)
+            
+            
+###
+def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verified_set_dir):
+    """
+    Args:
+    verified_sets_parent_dir(str): Name of the parent folder holding verified images; Ex:"verified/verified_sets"
+    verified_set_dir(str): Name of verified set folder containing images without corresponding annotations; Ex:"verify_jaewon_poonacha_cleave_1"
+    
+    Return: 
+    jpgs_missing_xmls(list): list of jpgs without corresponding annotations in the verified folder of interest
+    jpgs_missing_xmls_path(list): list of paths containing xmls matching the jpgs missing annotations
+    """
+    #get the xml ids w/o the ext
+    xmls = os.listdir(os.path.join(parent_directory,verified_sets_parent_dir, verified_set_dir, "chips_positive_xml"))
+    xmls_without_ext = []
+    for xml in xmls:
+        xmls_without_ext.append(os.path.splitext(xml)[0])
+        
+    #get the jpg ids w/o the ext
+    jpgs = os.listdir(os.path.join(parent_directory, verified_sets_parent_dir, verified_set_dir,"chips_positive"))
+    jpgs_without_ext = []
+    for jpg in jpgs:
+        jpgs_without_ext.append(os.path.splitext(jpg)[0])
+
+    #identify jpgs tht are missing xmls
+    jpgs_missing_xmls = []
+    for xml in xmls_without_ext:
+        if xml not in jpgs_without_ext:
+            jpgs_missing_xmls.append(xml)
+
+    #identify possible xml path 
+    all_xmls = glob(parent_directory + "/**/*.xml", recursive = True)
+    jpgs_missing_xmls_path =[]
+    for jpg in jpgs_missing_xmls:
+        jpg_path = [string for string in all_xmls if jpg in string]   
+        if len(jpg_path) > 0:
+            jpgs_missing_xmls_path.append(jpg_path)
+    
+    return(jpgs_missing_xmls, jpgs_missing_xmls_path)

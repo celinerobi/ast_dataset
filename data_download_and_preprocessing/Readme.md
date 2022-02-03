@@ -78,7 +78,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_studen14_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\
 
@@ -115,7 +115,7 @@ python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotat
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
-python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\verified --original True
+python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\verified\\verified_sets --original True
 ## 6. Standardize Object Labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              
@@ -140,6 +140,14 @@ Example for complete dataset:
 python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset --annotation_directory chips_positive_corrected_xml --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
 
 
+
+## Post Procesing
+
 ## 8. Move and Download Tiles
     
 python move_download_tiles.py
+
+
+# 9. Image Characteristics
+python image_characteristics.py
+destination_filenames

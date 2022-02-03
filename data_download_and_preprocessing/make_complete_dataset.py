@@ -33,7 +33,7 @@ def main(args):
     sub_directories = list()
     for annotator_directory in ap.list_of_sub_directories(args.parent_directory):
         for root,dirs,files in os.walk(annotator_directory):
-            if "chips" in dirs:
+            if "chips_positive" in dirs:
                 sub_directories.append(root)
 
     ### Move the annotations + images 

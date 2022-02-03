@@ -44,15 +44,12 @@ def get_args_parse():
 
 def main(args):
     #specify folder that holds tiles in completed dataset
-    complete_dataset_tiles_folder_path = os.path.join(parent_directory, complete_dataset_path, "tiles")
+    tiles_complete_dataset_path = os.path.join(args.parent_directory, args.complete_dataset_path, "tiles")
 
     #unique positive jpgs (file names with the file extension)
-    unique_positive_jpgs = fc.unique_positive_jpgs_from_parent_directory(parent_directory)
+    unique_positive_jpgs = fc.unique_positive_jpgs_from_parent_directory(args.parent_directory)
     
-    #specify folder that holds tiles in completed dataset
-    path_to_tiles_folder_complete_dataset = os.path.join(parent_directory, complete_dataset_path, "tiles")
-
-    image_characteristics = fc.image_characteristics(complete_dataset_tiles_folder_path, unique_positive_jpgs)
+    image_characteristics = fc.image_characteristics(tiles_complete_dataset_path, unique_positive_jpgs)
 
     image_characteristics.to_csv('image_characteristics.csv')
     counterin = 0
