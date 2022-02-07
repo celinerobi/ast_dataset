@@ -277,7 +277,7 @@ def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile
 
 ##
 
-def image_characteristics(tiles_dir, unique_positive_jpgs):
+def image_characteristics(tiles_dir, verified_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
     Args:
@@ -292,8 +292,8 @@ def image_characteristics(tiles_dir, unique_positive_jpgs):
     capture_date  = []
     utm_zone  = []
 
-    standard_tile_name = []
-    six_digit_chip_name = []
+    standard_tile_names = []
+    chip_names = []
     NW_coordinates = []
     SE_coordinates = []
     row_indicies = []
@@ -315,35 +315,26 @@ def image_characteristics(tiles_dir, unique_positive_jpgs):
         for x in range(0, col_index):
             for y in range(0, row_index):
                 #Tile names no longer match chip file names!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                six_digit_chip_name_temp = file_name+ '_'+ str(count).zfill(6) + '.jpg'
+                chip_name_temp = file_name+ '_'+ str(count).zfill(6) + '.jpg'
                 count += 1  
-                if six_digit_chip_name_temp in unique_positive_jpgs[:,0]: #only record values for images that are annotated
+                if chip_name_temp in verified_positive_jpgs[:,0]: #only record values for images that are annotated
                     #image characteristics
-                    six_digit_chip_name.append(six_digit_chip_name_temp) # The index is a six-digit number like '000023'.
+                    chip_names.append(chip_name_temp) # The index is a six-digit number like '000023'.
                     NW_coordinates.append([x*item_dim, y*(item_dim)]) #NW (Top Left) 
                     SE_coordinates.append([x*item_dim+item_dim-1, y*(item_dim)+item_dim-1]) #SE (Bottom right) 
                     row_indicies.append(y)
                     col_indicies.append(x)
                     #tile characteristics
-                    standard_tile_name.append(file_name.split("_",4)[4]) #standard_tile_name
-                    state.append(file_name.split("_",9)[0]) #state
-                    resolution.append(file_name.split("_",9)[1]) #resolution
-                    utm_zone.append(file_name.split("_",9)[7]) #utm
-                    year.append(file_name.split("_",9)[2]) #year
-                    capture_date.append(file_name.split("_",9)[-1]) #capture date
+                    ##  Get tile url using tile name
+                    standard_tile_names.append(tile_name)
                     #path
-                    full_path = unique_positive_jpgs[unique_positive_jpgs[:,0] == six_digit_chip_name_temp][0][1]
+                    full_path = verified_positive_jpgs[verified_positive_jpgs[:,0] == chip_name_temp][0][1]
                     root = full_path.split("\\",2)[0]
 
     #create pandas dataframe
     image_characteristics = pd.DataFrame(data={ "root":root,
-                                                'state': state,
-                                                'resolution': resolution,
-                                                'year': year,
-                                                'capture_date':capture_date,
-                                                'utm_zone': utm_zone,
-                                                'standard_tile_name': standard_tile_name,
-                                                'six_digit_chip_name':six_digit_chip_name,
+                                                'standard_tile_name': standard_tile_names,
+                                                'chip_name': chip_names,
                                                 'NW_pixel_coordinates': NW_coordinates,
                                                 'SE_pixel_coordinates': SE_coordinates,
                                                 'row_indicies': row_indicies,

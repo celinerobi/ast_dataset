@@ -78,9 +78,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_studen14_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student15_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\\unverified_images\student_reviewed_unverified_images\
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Nayak --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4 
 
 python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
 Z:\labelwork\
@@ -93,7 +93,7 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
 
-python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set3\unverified_images\student_reviewed_unverified_images
+python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4
 
 Z:\verification_set3\unverified_images\student_reviewed_unverified_images
 
