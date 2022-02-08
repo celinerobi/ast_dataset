@@ -864,11 +864,11 @@ def seperate_images_for_verification_update_tracking(folder_annotator_list, veri
                     tile_img_annotation_annotator[ii,7] = folder_annotator_list[0].split("_")[2].capitalize()#class
 
                     shutil.copy(os.path.join(tile_img_annotation_annotator[ii, 2],"chips_positive", tile_img_annotation_annotator[ii, 1]), 
-                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips")) #copy images
+                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips_positive")) #copy images
 
                     shutil.copy(os.path.join(tile_img_annotation_annotator[ii, 2], "chips_positive_xml",
                                              tile_img_annotation_annotator[ii, 3]), 
-                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips_xml")) #copy annotations
+                                os.path.join(verification_dir, "verify_" + folder_annotator_list[0] + "_" + set_number, "chips_positive_xml")) #copy annotations
 
                     count += 1 #count the files allocated to each 
         print(count)

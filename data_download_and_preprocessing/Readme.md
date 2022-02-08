@@ -93,7 +93,7 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
 
-python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4
+python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4\unverified_images
 
 Z:\verification_set3\unverified_images\student_reviewed_unverified_images
 
@@ -109,7 +109,7 @@ python verification_and_tracking.py     --tracker_file_path path_to_tracker_nump
                                         --set_number the_set_number
                                         --annotator_allocation annotator1 annotator2
 Example:
-python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Niculescu_Cleave_Sunny --annotator_allocation Poonacha Shen --set_number 3
+python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Niculescu_Sunny_Cleave --annotator_allocation Feinberg Kang Poonacha --set_number 4
 
 ## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations

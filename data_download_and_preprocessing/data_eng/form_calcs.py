@@ -454,3 +454,34 @@ def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verifie
             jpgs_missing_xmls_path.append(jpg_path)
     
     return(jpgs_missing_xmls, jpgs_missing_xmls_path)
+
+def identify_identical_images(images_dir_path):
+    """
+    Args:
+    images_dir_path(str): path to directory containing images of interest
+    Returns
+    same_images(list of lists): lists of images that contain that same information
+    https://pysource.com/2018/07/19/check-if-two-images-are-equal-with-opencv-and-python/
+    """
+    images = os.listdir(os.path.join(images_dir_path)) #Make a list of the images in the directory
+    same_images = [] #Make a list to hold the identical images
+    
+    for o_image in images:
+        original = cv2.imread(os.path.join(images_dir_path, o_image)) #open image
+
+        for d_image in images:
+            duplicate = cv2.imread(os.path.join(images_dir_path, d_image)) #open image
+
+            #check for similar characteristics
+            if original.shape == duplicate.shape:
+                difference = cv2.subtract(original, duplicate)
+                b, g, r = cv2.split(difference)
+
+            if cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
+                if o_image != d_image:
+                    same_images.append([o_image, d_image])
+                    images.remove(d_image) #remove duplicate images, because you have already at least one version to use to find others
+        
+        images.remove(o_image) #remove oimage from list, because you have already checked it against each image
+        
+    return(same_images)
