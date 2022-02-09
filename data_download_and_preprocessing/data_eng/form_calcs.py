@@ -1,17 +1,14 @@
-"""
+f"""
 Functions to process, format, and conduct calculations on the annotated or verified dataset
 """
 # Standard packages
-import tempfile
 import warnings
 import urllib
 import shutil
 import os
 # Less standard, but still pip- or conda-installable
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib
+
 #import rasterio
 import re
 import rtree
@@ -19,13 +16,9 @@ import shapely
 import pickle
 import data_eng.az_proc as ap
 import data_eng.form_calcs as fc
-
-#from cartopy import crs
-import collections
 import cv2
-import math
-from glob import glob
 import tqdm
+from glob import glob
 
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names
@@ -464,9 +457,11 @@ def identify_identical_images(images_dir_path):
     https://pysource.com/2018/07/19/check-if-two-images-are-equal-with-opencv-and-python/
     """
     images = os.listdir(os.path.join(images_dir_path)) #Make a list of the images in the directory
-    same_images = [] #Make a list to hold the identical images
-    
-    for o_image in images:
+    same_images_o_images = [] #Make a list to hold the identical images
+    same_images_d_images = [] #Make a list to hold the identical images
+
+    for o in tqdm.tqdm(range(len(images))):
+        o_image = images[o]
         original = cv2.imread(os.path.join(images_dir_path, o_image)) #open image
 
         for d_image in images:
@@ -479,9 +474,11 @@ def identify_identical_images(images_dir_path):
 
             if cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
                 if o_image != d_image:
-                    same_images.append([o_image, d_image])
+                    same_images_o_images.append([o_image]) #Make a list to hold the identical images
+                    same_images_d_images.append([d_image]) #Make a list to hold the identical images
                     images.remove(d_image) #remove duplicate images, because you have already at least one version to use to find others
         
         images.remove(o_image) #remove oimage from list, because you have already checked it against each image
-        
+    
+    same_images = np.array(same_images_o_images,same_images_d_images)
     return(same_images)
