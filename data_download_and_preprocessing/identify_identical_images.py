@@ -14,8 +14,8 @@ import os
 import numpy as np
 
 #import rasterio
-import re
-import rtree
+#import re
+#import rtree
 import shapely
 import pickle
 import data_eng.az_proc as ap
