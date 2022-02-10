@@ -448,23 +448,32 @@ def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verifie
     
     return(jpgs_missing_xmls, jpgs_missing_xmls_path)
 
-def identify_identical_images(images_dir_path):
+def list_of_lists_positive_chips(images_dir_path):
+    positive_chips = os.listdir(os.path.join((images_dir_path))
+    positive_chips_lists = [[x:x+1000] for x in range(0, len(positive_chips), 1000)]
+    return(positive_chips_lists)
+                                
+def identify_identical_images(o_images_dir_path, d_images_dir_path, o_images = None):
     """
     Args:
     images_dir_path(str): path to directory containing images of interest
     Returns
     same_images(list of lists): lists of images that contain that same information
     https://pysource.com/2018/07/19/check-if-two-images-are-equal-with-opencv-and-python/
-    """
-    images = os.listdir(os.path.join(images_dir_path)) #Make a list of the images in the directory
+    """                         
     same_images_o_images = [] #Make a list to hold the identical images
     same_images_d_images = [] #Make a list to hold the identical images
+         
+    #Make a list of the images to check for duplicates (images in directory or provided as arugment in function)
+    if o_images = None:
+        o_images = os.listdir(os.path.join(o_images_dir_path)) 
+    d_images = os.listdir(os.path.join(d_images_dir_path))
 
-    for o in tqdm.tqdm(range(len(images))):
-        o_image = images[o]
+    for o in tqdm.tqdm(range(len(o_images))):
+        o_image = o_images[o]
         original = cv2.imread(os.path.join(images_dir_path, o_image)) #open image
 
-        for d_image in images:
+        for d_image in d_images:
             duplicate = cv2.imread(os.path.join(images_dir_path, d_image)) #open image
 
             #check for similar characteristics

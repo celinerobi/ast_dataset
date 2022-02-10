@@ -36,7 +36,8 @@ def get_args_parse():
     
 def main(args): 
     fc.remove_thumbs(args.chips_positive_path)  
-    same_images = fc.identify_identical_images(args.chips_positive_path)
+    positive_chips_lists = fc.list_of_lists_positive_chips(args.chips_positive_path)
+    same_images = fc.identify_identical_images(args.chips_positive_path, args.chips_positive_path, positive_chips_lists[0])
     np.save("same_images.npy", same_images)
 if __name__ == '__main__':
     ### Get the arguments 
