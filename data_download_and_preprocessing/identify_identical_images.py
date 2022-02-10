@@ -6,9 +6,9 @@ Record the tile, chip, and annotation file names, chip pathway, and annotator na
 Import Packages
 """
 # Standard packages
-import warnings
-import urllib
-import shutil
+#import warnings
+#import urllib
+#import shutil
 import os
 # Less standard, but still pip- or conda-installable
 import numpy as np
@@ -16,9 +16,9 @@ import numpy as np
 #import rasterio
 #import re
 #import rtree
-import shapely
-import pickle
-import data_eng.az_proc as ap
+#import shapely
+#import pickle
+#import data_eng.az_proc as ap
 import data_eng.form_calcs as fc
 import cv2
 import tqdm
