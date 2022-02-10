@@ -19,7 +19,7 @@ import numpy as np
 #import shapely
 #import pickle
 #import data_eng.az_proc as ap
-import data_eng.form_calcs as fc
+#import data_eng.form_calcs as fc
 import cv2
 import tqdm
 import argparse
