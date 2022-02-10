@@ -34,6 +34,16 @@ def get_args_parse():
     args = parser.parse_args()
     return args
 
+def remove_thumbs(path_to_folder_containing_images):
+    """ Remove Thumbs.db file from a given folder
+    Args: 
+    path_to_folder_containing_images(str): path to folder containing images
+    Returns:
+    None
+    """
+    if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
+        os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
+
 def list_of_lists_positive_chips(chips_positive_path):
     positive_chips = os.listdir(chips_positive_path)
     positive_chips_lists = [positive_chips[x:x+1000] for x in range(0, len(positive_chips), 1000)]
@@ -79,7 +89,7 @@ def identify_identical_images(o_images_dir_path, d_images_dir_path, o_images = N
     return(same_images)
     
 def main(args): 
-    fc.remove_thumbs(args.chips_positive_path)  
+    remove_thumbs(args.chips_positive_path)  
     positive_chips_lists = list_of_lists_positive_chips(args.chips_positive_path)
     same_images = identify_identical_images(args.chips_positive_path, args.chips_positive_path, positive_chips_lists[0])
     np.save("same_images.npy", same_images)
