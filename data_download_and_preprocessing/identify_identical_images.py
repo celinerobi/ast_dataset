@@ -31,9 +31,9 @@ def get_args_parse():
         description='This script records the annotator who has labeled each image')
     parser.add_argument('--chips_positive_path', type=str, default = "C:/chip_allocation/complete_dataset/chips_positive",
                         help='path to positive chips in complete dataset.')
-    parser.add_argument('--blocks', type=str, default = "20",
+    parser.add_argument("-B",'--blocks', type=str, default = "20",
                         help='path to positive chips in complete dataset.')
-    parser.add_argument('--block', type=str, default = "20",
+    parser.add_argument("-b",'--block', type=str, default = "20",
                         help='path to positive chips in complete dataset.')
     args = parser.parse_args()
     return args
