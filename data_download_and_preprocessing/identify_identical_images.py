@@ -38,6 +38,16 @@ def get_args_parse():
     args = parser.parse_args()
     return args
 
+def remove_thumbs(path_to_folder_containing_images):
+    """ Remove Thumbs.db file from a given folder
+    Args: 
+    path_to_folder_containing_images(str): path to folder containing images
+    Returns:
+    None
+    """
+    if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
+        os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
+        
 def list_of_lists_positive_chips(chips_positive_path, blocks):
     positive_chips = os.listdir(chips_positive_path)
     positive_chips_lists = [positive_chips[x:x+blocks] for x in range(0, len(positive_chips), blocks)]
