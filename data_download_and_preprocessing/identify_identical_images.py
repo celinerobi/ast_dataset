@@ -44,9 +44,9 @@ def remove_thumbs(path_to_folder_containing_images):
     if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
         os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
 
-def list_of_lists_positive_chips(chips_positive_path):
+def list_of_lists_positive_chips(chips_positive_path,blocks):
     positive_chips = os.listdir(chips_positive_path)
-    positive_chips_lists = [positive_chips[x:x+1000] for x in range(0, len(positive_chips), 1000)]
+    positive_chips_lists = [positive_chips[x:x+blocks] for x in range(0, len(positive_chips), 1000)]
     return(positive_chips_lists)
 
 def identify_identical_images(o_images_dir_path, d_images_dir_path, o_images = None):
@@ -90,7 +90,7 @@ def identify_identical_images(o_images_dir_path, d_images_dir_path, o_images = N
     
 def main(args): 
     remove_thumbs(args.chips_positive_path)  
-    positive_chips_lists = list_of_lists_positive_chips(args.chips_positive_path)
+    positive_chips_lists = list_of_lists_positive_chips(args.chips_positive_path,20)
     same_images = identify_identical_images(args.chips_positive_path, args.chips_positive_path, positive_chips_lists[0])
     np.save("same_images.npy", same_images)
     
