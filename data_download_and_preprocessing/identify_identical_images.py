@@ -37,6 +37,12 @@ def get_args_parse():
                         help='path to positive chips in complete dataset.')
     args = parser.parse_args()
     return args
+
+def list_of_lists_positive_chips(chips_positive_path, blocks):
+    positive_chips = os.listdir(chips_positive_path)
+    positive_chips_lists = [positive_chips[x:x+blocks] for x in range(0, len(positive_chips), blocks)]
+    return(positive_chips_lists)
+
 def identify_identical_images(o_images_dir_path, d_images_dir_path, blocks, block):#o_images = None,):
     """
     Args:
@@ -53,7 +59,7 @@ def identify_identical_images(o_images_dir_path, d_images_dir_path, blocks, bloc
     #    o_images = os.listdir(os.path.join(o_images_dir_path)) 
     d_images = os.listdir(os.path.join(d_images_dir_path))
 
-    o_images = [d_images[x:x+blocks] for x in range(0, len(d_images), blocks)][block]
+    o_images = list_of_lists_positive_chips(o_images_dir_path, blocks)[block]
 
     for o in tqdm.tqdm(range(len(o_images))):
         o_image = o_images[o]
@@ -81,7 +87,6 @@ def identify_identical_images(o_images_dir_path, d_images_dir_path, blocks, bloc
     
 def main(args): 
     positive_chips_lists = list_of_lists_positive_chips(args.chips_positive_path,20)
-    np.load("load", same_images)
     same_images = identify_identical_images(args.chips_positive_path, args.chips_positive_path, positive_chips_lists[0])
     np.save("same_images.npy", same_images)
     
