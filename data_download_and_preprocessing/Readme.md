@@ -79,6 +79,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              
 Example:
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student13_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+Z:\labelwork\unverified_images_not_reviewed_by_student13_Kang\chips_positive_xml
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Nayak --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4 
 

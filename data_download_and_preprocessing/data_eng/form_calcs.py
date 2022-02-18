@@ -8,7 +8,7 @@ import shutil
 import os
 # Less standard, but still pip- or conda-installable
 import numpy as np
-
+import pandas as pd
 #import rasterio
 #import re
 #import rtree
@@ -447,3 +447,161 @@ def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verifie
     
     return(jpgs_missing_xmls, jpgs_missing_xmls_path)
 
+
+
+
+
+
+
+
+
+## Identify Duplicates
+def positive_images_to_array(images_dir_path):
+    images = np.array(os.listdir(os.path.join(images_dir_path)))
+    imgsr = np.zeros((len(images),512,3), dtype='uint8')
+    imgsg = np.zeros((len(images),512,3), dtype='uint8')
+    imgsb = np.zeros((len(images),512,3), dtype='uint8')
+    
+    for num in tqdm.tqdm(range(len(images))):    
+        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
+        imgsr[num,:,:] = image[0]
+        imgsg[num,:,:] = image[1]
+        imgsb[num,:,:] = image[2]
+    return(images, imgsr, imgsg, imgsb)
+        
+def unique_by_first_dimension(a, images):
+    #https://stackoverflow.com/questions/41071116/how-to-remove-duplicates-from-a-3d-array-in-python
+    tmp = a.reshape(a.shape[0], -1)
+    b = np.ascontiguousarray(tmp).view(np.dtype((np.void, tmp.dtype.itemsize * tmp.shape[1])))
+    
+    _, idx = np.unique(b, return_index=True)
+    unique_images = images[idx]
+    
+    u, c = np.unique(b, return_counts=True)
+    dup = u[c > 1]
+    duplicate_images = images[np.where(np.isin(b,dup))[0]]
+    return(unique_images, duplicate_images)
+
+def intersection_of_sets(arr1, arr2, arr3):
+    # Converting the arrays into sets
+    s1 = set(arr1)
+    s2 = set(arr2)
+    s3 = set(arr3)
+      
+    # Calculates intersection of sets on s1 and s2
+    set1 = s1.intersection(s2)         #[80, 20, 100]
+      
+    # Calculates intersection of sets on set1 and s3
+    result_set = set1.intersection(s3)
+      
+    # Converts resulting set to list
+    final_list = list(result_set)
+    print(len(final_list))
+    return(final_list)
+
+def move_images(old_image_dir, new_image_dir, image_names):
+    #Ensure directory exists
+    os.makedirs(new_image_dir, exist_ok = True)
+    #move images
+    for image in image_names:
+        shutil.copyfile(os.path.join(old_image_dir,image), 
+                        os.path.join(new_image_dir,image))                
+
+def sorted_list_of_files(dups_chips_positive_path):
+    #https://thispointer.com/python-get-list-of-files-in-directory-sorted-by-size/#:~:text=order%20by%20size%3F-,Get%20list%20of%20files%20in%20directory%20sorted%20by%20size%20using,%2C%20using%20lambda%20x%3A%20os.
+    #Get list of files in directory sorted by size using os.listdir()
+
+    #list_of_files = filter( lambda x: os.path.isfile(os.path.join(dir_name, x)), os.listdir(dir_name) )
+    # Sort list of file names by size 
+    #list_of_files = sorted( list_of_files,key =  lambda x: os.stat(os.path.join(dir_name, x)).st_size)
+    
+    sizes = []
+    dup_images = np.array(os.listdir(dups_chips_positive_path))
+    for image in dup_images:
+        sizes.append(os.stat(os.path.join(dups_chips_positive_path,image)).st_size)
+    sizes = np.array(sizes)
+    
+    df = pd.DataFrame({'dups': dup_images,
+                       'sizes': sizes})
+    df = df.sort_values(by=['sizes'])
+    df.to_csv('dup tile names.csv') 
+
+    return(df)
+
+def list_of_lists_positive_chips(chips_positive_path):
+    positive_chips = os.listdir(chips_positive_path)
+    positive_chips_lists = [positive_chips[x:x+1000] for x in range(0, len(positive_chips), 1000)]
+    return(positive_chips_lists)
+
+def directory_tile_names(directory, output_file_name): 
+    tiles = []
+    for image in os.listdir(directory):
+            img = os.path.splitext(image)[0] #name of tif with the extension removed
+            tile = img.rsplit("_",1)[0]
+            #print(tile.split("_",4)[4])
+            #tile = tile.split("_",4)[4] #get the tile names to remove duplicates from being downloaded
+            tiles.append(tile)
+    tiles = np.unique(tiles)
+    pd.DataFrame(tiles, columns = [output_file_name]).to_csv(output_file_name+'.csv') 
+
+def identify_all_paths_to_duplicate_images(parent_directory, duplicate_images):
+    entire_jpg = glob(parent_directory + "/**/*.jpg", recursive = True)
+    full_path = []
+    jpg_name = []
+    for jpg in entire_jpg:
+        if jpg.rsplit("\\")[-1] in duplicate_images:
+            full_path.append(jpg)
+            jpg_name.append(jpg.rsplit("\\")[-1])
+
+    df = pd.DataFrame({'jpg name': jpg_name,
+                       'full path': full_path})
+    df.to_csv("duplicate_jpgs_full_path.csv")
+
+
+    
+    
+#Long way round
+def list_of_lists_positive_chips(chips_positive_path, blocks):
+    positive_chips = os.listdir(chips_positive_path)
+    positive_chips_lists = [positive_chips[x:x+int(blocks)] for x in range(0, len(positive_chips), int(blocks))]
+    return(positive_chips_lists)
+
+def identify_identical_images(images_dir_path, blocks, block):#o_images = None,):
+    """
+    Args:
+    images_dir_path(str): path to directory containing images of interest
+    Returns
+    same_images(list of lists): lists of images that contain that same information
+    https://pysource.com/2018/07/19/check-if-two-images-are-equal-with-opencv-and-python/
+    """                         
+    same_images_o_images = [] #Make a list to hold the identical images
+    same_images_d_images = [] #Make a list to hold the identical images
+         
+    #Make a list of the images to check for duplicates (images in directory or provided as arugment in function)
+    d_images = os.listdir(os.path.join(images_dir_path))
+
+    o_images = list_of_lists_positive_chips(images_dir_path, int(blocks))[int(block)]
+
+    for o in tqdm.tqdm(range(len(o_images))):
+        o_image = o_images[o]
+        original = cv2.imread(os.path.join(images_dir_path, o_image)) #open image
+
+        for d_image in d_images:
+            duplicate = cv2.imread(os.path.join(images_dir_path, d_image)) #open image
+
+            #check for similar characteristics
+            if original.shape == duplicate.shape:
+                difference = cv2.subtract(original, duplicate)
+                b, g, r = cv2.split(difference)
+
+            if cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
+                if o_image != d_image:
+                    same_images_o_images.append([o_image]) #Make a list to hold the identical images
+                    same_images_d_images.append([d_image]) #Make a list to hold the identical images
+                    if d_image in o_images:
+                        o_images.remove(d_image) #remove duplicate images, because you have already at least one version to use to find others
+        
+        d_images.remove(o_image) #remove o_image from d_images list, because you have already checked it against each image
+    
+    same_images = np.array(same_images_o_images, same_images_d_images)
+    return(same_images)
