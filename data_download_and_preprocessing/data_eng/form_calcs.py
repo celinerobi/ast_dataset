@@ -2,6 +2,8 @@ f"""
 Functions to process, format, and conduct calculations on the annotated or verified dataset
 """
 # Standard packages
+#from __future__ import print_function
+
 import warnings
 import urllib
 import shutil
@@ -18,6 +20,11 @@ import data_eng.az_proc as ap
 import cv2
 import tqdm
 from glob import glob
+import math 
+
+from skimage.metrics import structural_similarity as compare_ssim
+import imutils
+import psutil
 
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names
@@ -557,6 +564,182 @@ def identify_all_paths_to_duplicate_images(parent_directory, duplicate_images):
                        'full path': full_path})
     df.to_csv("duplicate_jpgs_full_path.csv")
 
+
+def get_tile_names_from_chip_names(directory):
+    remove_thumbs(directory)
+    tile_names = []
+    for chip_name in os.listdir(directory):
+        chip_name = os.path.splitext(chip_name)[0]#remove ext
+        chip_name, _ = chip_name.rsplit("_",1)
+        tile_names.append(chip_name.split("_",4)[4] + ".tif")
+    return(np.unique(tile_names))
+
+def positive_images_to_array(images_dir_path):
+    images = np.array(os.listdir(os.path.join(images_dir_path)))
+    image_array = np.zeros((len(images),512,512, 3), dtype='uint8')
+    image_directory = np.array([images_dir_path] *len(images))
+    for num in range(len(images)):    
+        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
+        image_array[num,:,:,:] = image
+        
+    return(images, image_array, image_directory)
+
+def positive_images_to_array_rgb(images_dir_path):
+    images = np.array(os.listdir(os.path.join(images_dir_path)))
+    imgsr = np.zeros((len(images),512,512), dtype='uint8')
+    imgsg = np.zeros((len(images),512,512), dtype='uint8')
+    imgsb = np.zeros((len(images),512,512), dtype='uint8')
+    
+    for num in range(len(images)):    
+        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
+        imgsr[num,:,:] = image[:,:,0]
+        imgsg[num,:,:] = image[:,:,1]
+        imgsb[num,:,:] = image[:,:2]
+    return(images, imgsr, imgsg, imgsb)
+
+def tile_to_chip_array(tile,x, y, item_dim):
+    """
+    x: row index
+    y: col index
+    """
+    chip_img = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
+    #add in back space if it is the edge of an image
+    if chip_img.shape[0] != 512:  #Height
+        black_height = 512  - chip_img.shape[0] #Height
+        black_width = 512 #- chip_img.shape[1] #width
+        black_img = np.zeros((black_height,black_width,3), np.uint8)
+        chip_img = np.concatenate([chip_img, black_img])
+
+    if chip_img.shape[1] != 512: #width
+        black_height = 512 #- chip_img.shape[0] #Height
+        black_width = 512 - chip_img.shape[1] #width
+        black_img = np.zeros((black_height,black_width,3), np.uint8)
+        chip_img = np.concatenate([chip_img, black_img],1)
+    
+    return(chip_img)
+
+def identify_incorrect_images(tile_dir, tiles_in_directory, 
+                          images_in_directory, images_in_directory_array,
+                             image_directories):
+    """
+    Find images that do not align with the tile chip
+    Confirm that the standard tile name in the chip and the contents of the chip match
+    """
+    #index over the tiles with corresponding images in the given directory
+    tile_names = []
+    incorrect_chip_names = []
+    incorrect_chip_paths = []
+    ys = []
+    xs = []
+    #correct_0_incorrect_1_images = []
+
+    #same_image_counter = 0
+    for tile_name in tiles_in_directory: 
+        file_name, ext = os.path.splitext(tile_name) # File name
+        
+        #get tile shape
+        item_dim = int(512)          
+        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
+        row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
+        col_index = math.ceil(tile_width/512)
+
+        count = 1  
+        for y in range(0, col_index):
+            for x in range(0, row_index):
+                chip_name_temp = file_name+ '_' + str(count).zfill(6) + '.jpg'
+                #create a numpy array of each correctly chipped images 
+                correct_image = tile_to_chip_array(tile, x, y, item_dim)
+                count += 1  
+
+                #Identify if images that are contained in the directory of interest
+                confirmed_chips = [string for string in images_in_directory if chip_name_temp in string]
+                if len(confirmed_chips) > 0:
+                    for confirmed_chip in confirmed_chips: #there may be duplicate images corresponding to the same standard tile name (nj and ny overlap)
+                    #obtain a numpy array of the image in the directory of interest
+                        index, = np.where(images_in_directory == confirmed_chip)
+                        image_in_directory_array = images_in_directory_array[index[0]] #use the actual value of index (saved as an array)
+                        image_directory = image_directories[index[0]]
+                        ##https://pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/
+                        #https://pyimagesearch.com/2014/09/15/python-compare-two-images/
+                        gray_image_in_directory_array = cv2.cvtColor(image_in_directory_array, cv2.COLOR_BGR2GRAY)
+                        gray_correct_image = cv2.cvtColor(correct_image, cv2.COLOR_BGR2GRAY)
+                        (score, diff) = compare_ssim(gray_image_in_directory_array, gray_correct_image, full=True)
+                        diff = (diff * 255).astype("uint8")
+                        #if score >= 0.90:
+                        #    correct_0_incorrect_1_images.append(0)
+
+                        if score < 0.90: 
+                            #print("different image")
+                            tile_names.append(tile_name)
+                            xs.append(x)
+                            ys.append(y)
+                            incorrect_chip_names.append(confirmed_chip)
+                            incorrect_chip_paths.append(os.path.join(image_directory,confirmed_chip))
+                            #print("SSIM: {}".format(score))
+                            #correct_0_incorrect_1_images.append(1)
+
+    return(tile_names, xs, ys, incorrect_chip_names, incorrect_chip_paths)
+
+def identify_incorrect_images_simultaneous(tile_dir, tiles_in_directory, images_path):
+    """
+    Find images that do not align with the tile chip
+    Confirm that the standard tile name in the chip and the contents of the chip match
+    """
+    #index over the tiles with corresponding images in the given directory
+    tile_names = []
+    incorrect_chip_names = []
+    incorrect_chip_paths = []
+    ys = []
+    xs = []
+    #correct_0_incorrect_1_images = []
+
+    #same_image_counter = 0
+    for tile_name in tqdm.tqdm(tiles_in_directory): 
+        file_name, ext = os.path.splitext(tile_name) # File name
+        
+        #get tile shape
+        item_dim = int(512)          
+        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
+        row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
+        col_index = math.ceil(tile_width/512)
+
+        count = 1  
+        for y in range(0, col_index):
+            for x in range(0, row_index):
+                chip_name_temp = file_name+ '_' + str(count).zfill(6) + '.jpg'
+                #create a numpy array of each correctly chipped images 
+                correct_image = tile_to_chip_array(tile, x, y, item_dim)
+                count += 1  
+
+                #Identify if images that are contained in the directory of interest
+                labeled_chip_paths = [string for string in images_path if chip_name_temp in string]
+                if len(labeled_chip_paths) > 0:
+                    for labeled_chip_path in labeled_chip_paths: #there may be duplicate images corresponding to the same standard tile name (nj and ny overlap)
+                    #obtain a numpy array of the image in the directory of interest
+                        index, = np.where(images_path == labeled_chip_path)
+                        labeled_chip_array = cv2.imread(os.path.join(images_path[index[0]])) #open image
+
+                        ##https://pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/
+                        #https://pyimagesearch.com/2014/09/15/python-compare-two-images/
+                        gray_labeled_chip_array = cv2.cvtColor(labeled_chip_array, cv2.COLOR_BGR2GRAY)
+                        gray_correct_image = cv2.cvtColor(correct_image, cv2.COLOR_BGR2GRAY)
+                        (score, diff) = compare_ssim(gray_labeled_chip_array, gray_correct_image, full=True)
+                        diff = (diff * 255).astype("uint8")
+                        #if score >= 0.90:
+                        #    correct_0_incorrect_1_images.append(0)
+
+                        if score < 0.90: 
+                            #print("different image")
+                            tile_names.append(tile_name)
+                            xs.append(x)
+                            ys.append(y)
+                            incorrect_chip_paths.append(labeled_chip_path)
+                            #print("SSIM: {}".format(score))
+                            #correct_0_incorrect_1_images.append(1)
+
+    return(tile_names, xs, ys, incorrect_chip_paths)
 
     
     
