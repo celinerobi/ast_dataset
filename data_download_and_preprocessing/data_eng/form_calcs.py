@@ -463,18 +463,6 @@ def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verifie
 
 
 ## Identify Duplicates
-def positive_images_to_array(images_dir_path):
-    images = np.array(os.listdir(os.path.join(images_dir_path)))
-    imgsr = np.zeros((len(images),512,3), dtype='uint8')
-    imgsg = np.zeros((len(images),512,3), dtype='uint8')
-    imgsb = np.zeros((len(images),512,3), dtype='uint8')
-    
-    for num in tqdm.tqdm(range(len(images))):    
-        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
-        imgsr[num,:,:] = image[0]
-        imgsg[num,:,:] = image[1]
-        imgsb[num,:,:] = image[2]
-    return(images, imgsr, imgsg, imgsb)
         
 def unique_by_first_dimension(a, images):
     #https://stackoverflow.com/questions/41071116/how-to-remove-duplicates-from-a-3d-array-in-python
@@ -597,7 +585,7 @@ def positive_images_to_array_rgb(images_dir_path):
         imgsb[num,:,:] = image[:,:2]
     return(images, imgsr, imgsg, imgsb)
 
-def tile_to_chip_array(tile,x, y, item_dim):
+def tile_to_chip_array(tile, x, y, item_dim):
     """
     x: row index
     y: col index

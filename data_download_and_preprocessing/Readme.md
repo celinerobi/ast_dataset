@@ -78,12 +78,11 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student13_Kang --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
-Z:\labelwork\unverified_images_not_reviewed_by_student13_Kang\chips_positive_xml
+python seperate_positive_negative_images.py  --annotation_directory student_reviewed_images9_Feinberg --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Nayak --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4 
 
-python seperate_positive_negative_images.py  --annotation_directory Shen_5 --parent_directory C:\chip_allocation
+python seperate_positive_negative_images.py  --annotation_directory student_reviewed_images9_Feinberg --parent_directory C:\chip_allocation
 Z:\labelwork\
 
 ## 3. Record Annotator
