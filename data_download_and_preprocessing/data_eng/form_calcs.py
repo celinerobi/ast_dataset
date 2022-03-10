@@ -26,6 +26,30 @@ from skimage.metrics import structural_similarity as compare_ssim
 import imutils
 import psutil
 
+####### Remove Thumbs ############################################################
+def remove_thumbs(path_to_folder_containing_images):
+    """ Remove Thumbs.db file from a given folder
+    Args: 
+    path_to_folder_containing_images(str): path to folder containing images
+    Returns:
+    None
+    """
+    if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
+        os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
+    
+def remove_thumbs_all_positive_chips(parent_directory):
+    """ Remove Thumbs.db file from all chips_positive folders in parent directory
+    Args: 
+    parent_directory(str): path to parent directory
+    Returns:
+    None
+    """
+    for r, d, f in os.walk(parent_directory):
+        folder_name = os.path.basename(r) #identify folder name
+        if 'chips_positive' == folder_name: #Specify folders that contain positive chips
+            remove_thumbs(r)
+
+########### Extract information from tile_names_tile urls numpy arrays ##########
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names
     tile_names = []
@@ -59,6 +83,7 @@ def unique_formatted_standard_tile_names(tile_names_tile_urls_complete_array):
     
     return(tile_names_tile_urls_complete_array_unique_standard_tile_names, tile_names_tile_urls_complete_array_unique_formatted_tile_names)
 
+################## Get tiles names or jpg names from jpg paths ####################
 def jpg_path_to_tile_name_formatted(jpg_paths):
     tile_names = []
     for jpg_path in jpg_paths:
@@ -78,28 +103,6 @@ def jpg_path_to_jpg_name_formatted(jpg_paths):
         jpgs_without_ext.append(jpg_without_ext)
     return(jpgs_ext, jpgs_without_ext)
 
-def remove_thumbs(path_to_folder_containing_images):
-    """ Remove Thumbs.db file from a given folder
-    Args: 
-    path_to_folder_containing_images(str): path to folder containing images
-    Returns:
-    None
-    """
-    if len(glob(path_to_folder_containing_images + "/*.db", recursive = True)) > 0:
-        os.remove(glob(path_to_folder_containing_images + "/*.db", recursive = True)[0])
-    
-def remove_thumbs_all_positive_chips(parent_directory):
-    """ Remove Thumbs.db file from all chips_positive folders in parent directory
-    Args: 
-    parent_directory(str): path to parent directory
-    Returns:
-    None
-    """
-    for r, d, f in os.walk(parent_directory):
-        folder_name = os.path.basename(r) #identify folder name
-        if 'chips_positive' == folder_name: #Specify folders that contain positive chips
-            remove_thumbs(r)
-    
 def unique_positive_jpgs_from_parent_directory(parent_directory):
     files = []
     paths = []
@@ -168,6 +171,9 @@ def jpg_paths_to_tiles_without_ext(jpg_paths):
         tiles.append(tile)
     return(np.unique(tiles))
 
+
+
+############## Download Tiles ##########################################################################################
 def download_tiles_of_verified_images(positive_images_complete_dataset_path, tiles_complete_dataset_path, tiles_downloaded, tile_names_tile_urls_complete_array):
     """
     # Download remaining tiles that correspond to ONLY to verified images
@@ -274,8 +280,7 @@ def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile
     
     return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
 
-##
-
+######################### Get Image Characteristics ####################################
 def image_characteristics(tiles_dir, verified_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
@@ -462,7 +467,7 @@ def identify_verified_jpgs_missing_annotations(verified_sets_parent_dir, verifie
 
 
 
-## Identify Duplicates
+####################### Identify Duplicates#####################################################################
         
 def unique_by_first_dimension(a, images):
     #https://stackoverflow.com/questions/41071116/how-to-remove-duplicates-from-a-3d-array-in-python
@@ -585,13 +590,43 @@ def positive_images_to_array_rgb(images_dir_path):
         imgsb[num,:,:] = image[:,:2]
     return(images, imgsr, imgsg, imgsb)
 
+def positive_images_to_array_correctly_labeled(images_dir_path, incorrect_labeled_chip_names_by_subfolder):
+    """
+    For every image in the given subdirectory, the name and image contents have been verified and incorrect images have been identified
+    This function identifies the images that are correctly labeled 
+    get image array for correctly labeled images
+    
+    Args:
+    images_dir_path(str)
+    incorrect_labeled_chip_names_by_subfolder(list)
+    """
+    subfolders_files = os.listdir(images_dir_path)
+    for chip in incorrect_labeled_chip_names_by_subfolder["incorrect_chip_names"].tolist():
+        if chip in subfolders_files:
+            subfolders_files.remove(chip)
+        
+    correctly_labeled_images = np.array(subfolders_files) #image names 
+    correctly_labeled_image_array = np.zeros((len(correctly_labeled_images),512,512, 3), dtype='uint8') #image contents 
+    correctly_labeled_image_directory = np.array([images_dir_path] * len(correctly_labeled_images)) #image directory 
+    for num in range(len(correctly_labeled_images)):    
+        correctly_labeled_image = cv2.imread(os.path.join(images_dir_path, correctly_labeled_images[num])) #open image
+        correctly_labeled_image_array[num,:,:,:] = correctly_labeled_image
+        
+    return(correctly_labeled_images, correctly_labeled_image_array, correctly_labeled_image_directory)
+
 def tile_to_chip_array(tile, x, y, item_dim):
     """
-    x: row index
-    y: col index
+    ##
+    x: col index
+    y: row index
     """
     chip_img = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
     #add in back space if it is the edge of an image
+    if (chip_img.shape[0] != 512) & (chip_img.shape[1] != 512): #width
+        #print("Incorrect Width")
+        chip = np.zeros((512,512,3))
+        chip[0:chip_img.shape[0], 0:chip_img.shape[1]] = chip_img
+        chip_img = chip
     if chip_img.shape[0] != 512:  #Height
         black_height = 512  - chip_img.shape[0] #Height
         black_width = 512 #- chip_img.shape[1] #width
@@ -605,6 +640,71 @@ def tile_to_chip_array(tile, x, y, item_dim):
         chip_img = np.concatenate([chip_img, black_img],1)
     
     return(chip_img)
+
+def identify_correct_images(tile_dir, tiles_in_directory, 
+                            images_in_directory, images_in_directory_array,
+                            image_directories):
+    """
+    Find images that do not align with the tiles chipped ####flipped rows and columns####
+    Confirm that the standard tile name in the chip and the contents of the chip match
+    """
+    #index over the tiles with corresponding images in the given directory
+    tile_names = []
+    correct_chip_names = []
+    correct_chip_paths = []
+    ys = []
+    xs = []
+    #correct_0_incorrect_1_images = []
+
+    #same_image_counter = 0
+    for tile_name in tiles_in_directory: 
+        file_name, ext = os.path.splitext(tile_name) # File name
+        
+        #get tile shape
+        item_dim = int(512)          
+        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
+        row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
+        col_index = math.ceil(tile_width/512)
+
+        count = 1  
+        for y in range(0, col_index):
+            for x in range(0, row_index):
+                chip_name_temp = file_name+ '_' + str(count).zfill(6) + '.jpg'
+                #create a numpy array of each correctly chipped images 
+                correct_image = tile_to_chip_array(tile, x, y, item_dim)
+                count += 1  
+
+                #Identify if images that are contained in the directory of interest
+                confirmed_chips = [string for string in images_in_directory if chip_name_temp in string]
+                if len(confirmed_chips) > 0:
+                    for confirmed_chip in confirmed_chips: #there may be duplicate images corresponding to the same standard tile name (nj and ny overlap)
+                    #obtain a numpy array of the image in the directory of interest
+                        index, = np.where(images_in_directory == confirmed_chip)
+                        image_in_directory_array = images_in_directory_array[index[0]] #use the actual value of index (saved as an array)
+                        image_directory = image_directories[index[0]]
+                        ##https://pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/
+                        #https://pyimagesearch.com/2014/09/15/python-compare-two-images/
+                        gray_image_in_directory_array = cv2.cvtColor(image_in_directory_array, cv2.COLOR_BGR2GRAY)
+                        gray_correct_image = cv2.cvtColor(correct_image, cv2.COLOR_BGR2GRAY)
+                        (score, diff) = compare_ssim(gray_image_in_directory_array, gray_correct_image, full=True)
+                        diff = (diff * 255).astype("uint8")
+                        if score >= 0.90:
+                            tile_names.append(tile_name)
+                            xs.append(x)
+                            ys.append(y)
+                            correct_chip_names.append(confirmed_chip)
+                            correct_chip_paths.append(os.path.join(image_directory,confirmed_chip))
+                        if (score < 0.90) and (score >= 0.80):                           
+                            fig, (ax1, ax2) = plt.subplots(1, 2)
+                            ax1.set_title('correct_image')
+                            ax1.imshow(correct_image)
+                            ax2.set_title('labeled_chip_array')
+                            ax2.imshow(image_in_directory_array)
+                            plt.show() 
+
+    return(tile_names, xs, ys, correct_chip_names, correct_chip_paths)
+
 
 def identify_incorrect_images(tile_dir, tiles_in_directory, 
                           images_in_directory, images_in_directory_array,
@@ -731,7 +831,84 @@ def identify_incorrect_images_simultaneous(tile_dir, tiles_in_directory, images_
 
     
     
-#Long way round
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+########################## Long way round ############################################
+################### Keep for posterity ##############################################
+def correct_images_from_chipped_tile_for_positive_images(tile_dir, tile_names, gray_incorrect_labeled_chip_image_array):#incorrect_labeled_chip_names_by_subfolder, incorrect_labeled_chip_image_array):
+    """
+    Find images that do not align with the tile chip
+    """
+
+    #index over the tiles with corresponding images in the given directory
+    correct_images = np.zeros((len(gray_incorrect_labeled_chip_image_array), 512, 512, 3),dtype='uint8')
+    correct_standard_chip_paths =  np.zeros((len(gray_incorrect_labeled_chip_image_array)))
+    nums = list(range(len(gray_incorrect_labeled_chip_image_array))) 
+    #tiles_paths = glob(tile_dir + "/*.tif", recursive = True)
+    for tile_name in tqdm.tqdm(tile_names): 
+        #tile_name = os.path.basename(tile_path) 
+        #file_name, ext = os.path.splitext(tile_name) # File name
+        file_name = tile_name
+        #get tile shape
+        item_dim = int(512)   
+        tile_path = os.path.join(tile_dir, tile_name + ".tif")
+        print(tile_path)
+        tile = cv2.imread(tile_path) 
+        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
+        row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
+        col_index = math.ceil(tile_width/512)
+
+        count = 1 #image names start at 1 
+        
+        for y in range(0, col_index): #row actually
+            for x in range(0, row_index): #column actually
+                chip_name = file_name + '_' + str(count).zfill(6) + '.jpg'
+                
+                #create a numpy array of each correctly chipped images 
+                correct_image = fc.tile_to_chip_array(tile, x, y, item_dim)
+                count += 1  
+                for num in nums:
+                    #incorrect_image = incorrect_labeled_chip_image_array[num,:,:,:]
+                    ##https://pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/
+                    #https://pyimagesearch.com/2014/09/15/python-compare-two-images/
+                    #gray_incorrect_image = cv2.cvtColor(incorrect_image, cv2.COLOR_BGR2GRAY)
+                    gray_correct_image = cv2.cvtColor(correct_image, cv2.COLOR_BGR2GRAY)
+                    (score, diff) = compare_ssim(gray_incorrect_labeled_chip_image_array[num], gray_correct_image, full=True)
+                    diff = (diff * 255).astype("uint8")
+
+                    if score >= 0.92: #Save the same images
+                        print("same image")
+                        correct_images[num,:,:,:] = correct_image
+                        correct_standard_chip_names[num](chip_name)
+                        nums.remove(num) #remove index of matched image
+                        print("SSIM: {}".format(score))
+                    if (score < 0.92) & (score > 0.9) :
+                        fig, (ax1, ax2) = plt.subplots(1, 2)
+                        ax1.set_title('correct_image')
+                        ax1.imshow(correct_image)
+                        ax2.set_title('labeled_chip_array')
+                        ax2.imshow(labeled_chip_array)
+                        plt.show() 
+        if len(nums) == 0:
+            break
+    return(correct_images, correct_standard_chip_names)
+
 def list_of_lists_positive_chips(chips_positive_path, blocks):
     positive_chips = os.listdir(chips_positive_path)
     positive_chips_lists = [positive_chips[x:x+int(blocks)] for x in range(0, len(positive_chips), int(blocks))]
