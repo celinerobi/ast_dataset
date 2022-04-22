@@ -139,7 +139,9 @@ python data_clean_descrip.py  --parent_directory \dir_containing_all_annotator_f
 Example for complete dataset:
 python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset --annotation_directory chips_positive_corrected_xml --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
 
-
+### Issue with missing rows
+chip_naming_convention_correction.ipynb
+allocate_remaining_images_march_2022.ipynb
 
 ## Post Procesing
 
