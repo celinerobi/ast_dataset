@@ -291,6 +291,14 @@ def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile
     return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
 
 ######################### Get Image Characteristics ####################################
+def determine_SE_NW_lat_lon(tile_path, tile_name):
+    ## Get tile locations
+    da = rioxarray.open_rasterio(os.path.join(tile_path, tile_name)) ## Read the data
+    # Compute the lon/lat coordinates with rasterio.warp.transform
+    da = da.rio.reproject("EPSG:4326") #reproject
+    lons, lats = np.meshgrid(da['x'], da['y'])
+    return(lons, lats)
+
 def image_characteristics(tiles_dir, verified_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
@@ -308,8 +316,10 @@ def image_characteristics(tiles_dir, verified_positive_jpgs):
 
     standard_tile_names = []
     chip_names = []
-    NW_coordinates = []
-    SE_coordinates = []
+    NW_coordinates_pixel = []
+    SE_coordinates_pixel = []
+    NW_coordinates_lonlat = []
+    SE_coordinates_lonlat = []
     row_indicies = []
     col_indicies = []
     full_path  = []
@@ -334,8 +344,21 @@ def image_characteristics(tiles_dir, verified_positive_jpgs):
                 if chip_name_temp in verified_positive_jpgs[:,0]: #only record values for images that are annotated
                     #image characteristics
                     chip_names.append(chip_name_temp) # The index is a six-digit number like '000023'.
-                    NW_coordinates.append([x*item_dim, y*(item_dim)]) #NW (Top Left) 
-                    SE_coordinates.append([x*item_dim+item_dim-1, y*(item_dim)+item_dim-1]) #SE (Bottom right) 
+                    minx = x*item_dim
+                    miny = y*item_dim
+                    maxx = x*item_dim + item_dim - 1
+                    maxy = y*item_dim + item_dim - 1
+                    NW_coordinates_pixel.append([minx, miny]) #NW (max: Top Left) # used for numpy crop
+                    SE_coordinates_pixel.append([maxx, maxy]) #SE (min: Bottom right) 
+                    
+                    lons, lats = determine_SE_NW_lat_lon(tile_path, tile_name, minx, miny, maxx, maxy)
+                    lon_minx = lons[:, minx] 
+                    lon_maxx = lons[:, maxx] 
+                    lat_miny = lats[miny]
+                    lat_maxy = lats[maxy]
+                    NW_coordinates_lonlat.append([lon_minx, lat_miny]) #NW (max: Top Left) # used for numpy crop
+                    SE_coordinates_lonlat.append([lon_maxx, lat_maxy]) #SE (min: Bottom right) 
+                    
                     row_indicies.append(y)
                     col_indicies.append(x)
                     #tile characteristics
@@ -349,12 +372,13 @@ def image_characteristics(tiles_dir, verified_positive_jpgs):
     image_characteristics = pd.DataFrame(data={ "root":root,
                                                 'standard_tile_name': standard_tile_names,
                                                 'chip_name': chip_names,
-                                                'NW_pixel_coordinates': NW_coordinates,
-                                                'SE_pixel_coordinates': SE_coordinates,
+                                                'NW_pixel_coordinates_pixel': NW_coordinates_pixel,
+                                                'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
+                                                'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat,
+                                                'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat,
                                                 'row_indicies': row_indicies,
                                                 'col_indicies': col_indicies})
     return(image_characteristics)
-
 
 ################################################################
 #############  Format tiles in tiles folder  ###################

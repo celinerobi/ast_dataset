@@ -486,6 +486,7 @@ class annotator:
 
             for y in range(0, col_index):
                 for x in range(0, row_index):
+                    #https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
                     chip_img = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
 
                     #specify the path to save the image
