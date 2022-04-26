@@ -599,7 +599,7 @@ class annotator:
                         
                 if int(obj.find('difficult').text) == 1:
                     obj.find('truncated').text = '1'
-                    obj.find('difficult').text = '0'
+                    obj.find('difficult').text = '1'
                     
             tree.write(os.path.join(self.chips_positive_corrected_xml_dir, xml_file))       
             
