@@ -12,6 +12,7 @@ import math
 import numpy as np
 import pandas as pd
 #import rasterio
+import rioxarray
 #import re
 #import rtree
 #import shapely
@@ -319,97 +320,229 @@ def downloaded_tifs_tile_names_tile_urls_file_names_tile_names_without_year(tile
     return(np.array((tile_names, tile_urls, file_names, tile_names_without_year)).T)
 
 ######################### Get Image Characteristics ####################################
-def determine_SE_NW_lat_lon(tile_path, tile_name):
+def determine_tile_SE_NW_lat_lon_size(tile_path, tile_name):
     ## Get tile locations
     da = rioxarray.open_rasterio(os.path.join(tile_path, tile_name)) ## Read the data
     # Compute the lon/lat coordinates with rasterio.warp.transform
     da = da.rio.reproject("EPSG:4326") #reproject
-    lons, lats = np.meshgrid(da['x'], da['y'])
-    return(lons, lats)
+    # lons, lats = np.meshgrid(da['x'], da['y'])
+    tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
+    lons = da['x']
+    lats = da['y']
+    return(lons, lats, tile_band, tile_height, tile_width)
 
-def image_characteristics(tiles_dir, verified_positive_jpgs):
+
+    return(image_characteristics)
+def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verified_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
     Args:
+    images_and_xmls_by_tile_path(str): path to directory containing folders (named by tiles); where each folder contains the images/xmls
     tiles_dir(str): path to the directory containing tiles
     Returns:
     image_characteristics(pandadataframe):containing image characterisitcs 
-    """
-    #initialize lists
-    state = []
-    resolution = []
-    year = []
-    capture_date  = []
-    utm_zone  = []
-
-    standard_tile_names = []
+    """ 
+    tile_names_by_tile = []
+    tile_paths_by_tile = []
+    tile_dimensions = []
+    NW_coordinates_lonlat_tile = []
+    SE_coordinates_lonlat_tile = []
+    
     chip_names = []
+    tile_names_by_chip = []
+    tile_paths_by_chip = []
     NW_coordinates_pixel = []
     SE_coordinates_pixel = []
     NW_coordinates_lonlat = []
     SE_coordinates_lonlat = []
     row_indicies = []
     col_indicies = []
-    full_path  = []
-    root = []
-    for tile_name in tqdm.tqdm(os.listdir(tiles_dir)): #index over the tiles in the tiles_dir 
-        #load tiles 
-        file_name, ext = os.path.splitext(tile_name) # File name
-        count = 1      
+    image_paths  = []
+    xml_paths = []
     
-        item_dim = int(512)          
-        tile = cv2.imread(os.path.join(tiles_dir, tile_name)) 
-        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
+    item_dim = int(512)
+    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
+    for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
+        #specify image/xml paths for each tile
+        positive_image_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive")
+        positive_xml_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive_xml")
+        #load a list of images/xmls for each tile
+        positive_images = os.listdir(positive_image_dir)
+        positive_xmls = os.listdir(positive_xml_dir)
+        #read in tile
+        tile_path = os.path.join(tiles_dir, tile_name + ".tif")
+        #tile name/paths by tile
+        tile_names_by_tile.append(tile_name)
+        tile_paths_by_tile.append(tile_path)
+        #determine the lat/lon for each tile 
+        lons, lats, tile_band, tile_height, tile_width = determine_tile_SE_NW_lat_lon_size(tiles_dir, tile_name + ".tif")
+        NW_coordinates_lonlat_tile = [lons[0], lats[0]]
+        SE_coordinates_lonlat_tile = [lons[-1],lats[-1]]
+        tile_dimensions.append([tile_height, tile_width, tile_band])
 
-        #divide the tile into 512 by 512 chips (rounding up)
-        row_index = math.ceil(tile_height/512) 
-        col_index = math.ceil(tile_width/512)
-
-        for x in range(0, col_index):
-            for y in range(0, row_index):
-                #Tile names no longer match chip file names!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                chip_name_temp = file_name+ '_'+ str(count).zfill(6) + '.jpg'
-                ###chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg'
-                count += 1  
-                if chip_name_temp in verified_positive_jpgs[:,0]: #only record values for images that are annotated
-                    #image characteristics
-                    chip_names.append(chip_name_temp) # The index is a six-digit number like '000023'.
-                    minx = x*item_dim
-                    miny = y*item_dim
-                    maxx = x*item_dim + item_dim - 1
-                    maxy = y*item_dim + item_dim - 1
-                    NW_coordinates_pixel.append([minx, miny]) #NW (max: Top Left) # used for numpy crop
-                    SE_coordinates_pixel.append([maxx, maxy]) #SE (min: Bottom right) 
-                    
-                    lons, lats = determine_SE_NW_lat_lon(tile_path, tile_name, minx, miny, maxx, maxy)
-                    lon_minx = lons[:, minx] 
-                    lon_maxx = lons[:, maxx] 
-                    lat_miny = lats[miny]
-                    lat_maxy = lats[maxy]
-                    NW_coordinates_lonlat.append([lon_minx, lat_miny]) #NW (max: Top Left) # used for numpy crop
-                    SE_coordinates_lonlat.append([lon_maxx, lat_maxy]) #SE (min: Bottom right) 
-                    
-                    row_indicies.append(y)
-                    col_indicies.append(x)
-                    #tile characteristics
-                    ##  Get tile url using tile name
-                    standard_tile_names.append(tile_name)
-                    #path
-                    full_path = verified_positive_jpgs[verified_positive_jpgs[:,0] == chip_name_temp][0][1]
-                    root = full_path.split("\\",2)[0]
+        for positive_image in positive_images:
+            #tile and chip names
+            chip_name = os.path.splitext(positive_image)[0]
+            chip_names.append(chip_name) # The index is a six-digit number like '000023'.
+            tile_names_by_chip.append(tile_name)
+            #path
+            tile_paths_by_chip.append(tile_path)
+            image_paths.append(os.path.join(positive_image_dir, positive_image))
+            xml_paths.append(os.path.join(positive_xml_dir, chip_name +".xml"))
+            #row/col indicies 
+            y, x = chip_name.split("_")[-2:] #name of tif with the extension removed; y=row;x=col
+            y = int(y)
+            x = int(x)
+            row_indicies.append(y)
+            col_indicies.append(x)
+            #get the pixel coordinates
+            minx = x*item_dim
+            miny = y*item_dim
+            maxx = x*item_dim + item_dim - 1
+            maxy = y*item_dim + item_dim - 1
+            NW_coordinates_pixel.append([minx, miny]) #NW (max: Top Left) # used for numpy crop
+            SE_coordinates_pixel.append([maxx, maxy]) #SE (min: Bottom right) 
+            #determine the lat/lon
+            NW_coordinates_lonlat.append([lons[minx], lats[miny]]) #NW (max: Top Left) # used for numpy crop
+            SE_coordinates_lonlat.append([lons[maxx], lats[maxy]]) #SE (min: Bottom right)             
 
     #create pandas dataframe
-    image_characteristics = pd.DataFrame(data={ "root":root,
-                                                'standard_tile_name': standard_tile_names,
-                                                'chip_name': chip_names,
-                                                'NW_pixel_coordinates_pixel': NW_coordinates_pixel,
-                                                'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
-                                                'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat,
-                                                'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat,
-                                                'row_indicies': row_indicies,
-                                                'col_indicies': col_indicies})
-    return(image_characteristics)
+    tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, 
+                                               'tile_dimensions': tile_dimensions, 'col_indicies': col_indicies,
+                                               'NW_coordinates_lonlat_tile': NW_coordinates_lonlat_tile,
+                                               'SE_coordinates_lonlat_tile': SE_coordinates_lonlat_tile})
+    tile_characteristics.to_csv("tile_characteristics.csv")
+    image_characteristics = pd.DataFrame(data={'chip_name': chip_names, 'image_path': image_paths, 'xml_path': xml_paths,                    
+                                               'tile_name': tile_names_by_chip, 'tile_path': tile_paths_by_chip, 
+                                               'row_indicies': row_indicies, 'col_indicies': col_indicies,
+                                               'NW_pixel_coordinates_pixel': NW_coordinates_pixel,'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
+                                               'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat, 'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat})
+    image_characteristics.to_csv("image_characteristics.csv")
 
+    return(tile_characteristics, image_characteristics)
+###################################################################################################################
+###################################### Combine XMLs for each tile##################################################
+###################################################################################################################
+def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year, 
+                tile_width, tile_height, tile_band):
+    tile_name_ext = tile_name + ".tif"
+    root = et.Element("annotation")
+    folder = et.Element("folder") #add folder to xml
+    folder.text = "tiles" #folder
+    root.insert(0, folder)
+    filename = et.Element("filename") #add filename to xml
+    filename.text = tile_name_ext #filename
+    root.insert(1, filename)
+    path = et.Element("path") #add path to xml
+    path.text = os.path.join(xml_directory, tile_name_ext) #path
+    root.insert(2, path)
+    resolution = et.Element("resolution") #add resolution to xml
+    resolution.text = tile_resolution #resolution
+    root.insert(3, resolution)
+    year = et.Element("year") #add year to xml
+    year.text = tile_year #year
+    root.insert(4,year)
+    source = et.Element("source") #add database to xml
+    database = et.Element("database")
+    database.text = "Tile Level Annotation" #
+    source.insert(0, database)
+    root.insert(5,source)
+    size = et.Element("size") #add size to xml
+    width = et.Element("width")
+    width.text = str(tile_width) #width
+    size.insert(0, width)
+    height = et.Element("height")
+    height.text = str(tile_height) #height
+    size.insert(1, height)
+    depth = et.Element("depth")
+    depth.text = str(tile_band) #depth
+    size.insert(2, depth)
+    root.insert(6,size)
+    tree = et.ElementTree(root)
+    et.indent(tree, space="\t", level=0)
+    #tree.write("filename.xml")
+    tree.write(os.path.join(xml_directory, tile_name +".xml"))
+    
+def add_objects(xml_directory, tile_name, obj_class, 
+                obj_truncated, obj_difficult, obj_xmin, obj_ymin,
+                obj_xmax, obj_ymax):
+    tree = et.parse(os.path.join(xml_directory, tile_name + ".xml"))
+    root = tree.getroot() 
+    obj = et.Element("object") #add size to xml
+    
+    name = et.Element("name") #class
+    name.text = str(obj_class) 
+    obj.insert(0, name)
+    
+    pose = et.Element("pose") #pose
+    pose.text = "Unspecified" 
+    obj.insert(1, pose)
+    
+    truncated = et.Element("truncated")
+    truncated.text = str(obj_truncated) #
+    obj.insert(2, truncated)
+
+    difficult = et.Element("difficult")
+    difficult.text = str(obj_difficult)
+    obj.insert(3, difficult)
+
+    bndbox = et.Element("bndbox") #bounding box
+    xmin = et.Element("xmin") #xmin
+    xmin.text = str(obj_xmin) 
+    bndbox.insert(0, xmin)
+    ymin = et.Element("ymin") #ymin
+    ymin.text = str(obj_ymin) 
+    bndbox.insert(1, ymin)
+    xmax = et.Element("xmax") #xmax
+    xmax.text = str(obj_xmax) 
+    bndbox.insert(2, xmax)
+    ymax = et.Element("ymax") #ymax
+    ymax.text = str(obj_ymax) 
+    bndbox.insert(3, ymax)
+    obj.insert(4, bndbox)
+    
+    root.append(obj)
+    tree = et.ElementTree(root)
+    et.indent(tree, space="\t", level=0)
+    tree.write(os.path.join(xml_directory, tile_name +".xml"))
+    
+def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path):
+    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
+    for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
+        tile_name_ext = tile_name + ".tif"
+        #get tile dimensions ##replace with information from tile characteristics
+        da = rioxarray.open_rasterio(os.path.join(tiles_dir, tile_name_ext))
+        tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
+        #specify image/xml paths for each tile
+        positive_image_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive")
+        positive_xml_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive_xml")
+        #load a list of images/xmls for each tile
+        positive_images = os.listdir(positive_image_dir)
+        positive_xmls = os.listdir(positive_xml_dir)
+                       
+        for index, chip_xml in enumerate(positive_xmls):
+            #identify rows and columns
+            y, x = os.path.splitext(chip_xml)[0].split("_")[-2:] #name of tif with the extension removed; y=row;x=col
+            y = int(y)
+            x = int(x)
+            minx = x*item_dim
+            miny = y*item_dim
+            #load each xml
+            tree = et.parse(os.path.join(positive_xml_dir, chip_xml))
+            root = tree.getroot()
+            #create the tile xml
+            if index == 0:
+                 create_tile_xml(tile_name, tiles_xml_path, resolution.text, year.text, 
+                                tile_width, tile_height, tile_band)
+            #add the bounding boxes
+            for obj in root.iter('object'):
+                xmlbox = obj.find('bndbox')
+                obj_xmin = str(int(xmlbox.find('xmin').text) + minx)
+                obj_xmax = str(int(xmlbox.find('xmax').text) + minx)
+                obj_ymin = str(int(xmlbox.find('ymin').text) + miny)
+                obj_ymax = str(int(xmlbox.find('ymax').text) + miny)
+                add_objects(tiles_xml_path, tile_name, obj.find('name').text,obj.find('truncated').text, 
+                            obj.find('difficult').text, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
