@@ -484,34 +484,34 @@ class annotator:
             col_index = math.ceil(tile_width/512)
             #print(row_index, col_index)
 
-            for y in range(0, col_index):
-                for x in range(0, row_index):
+            for y in range(0, row_index):
+                for x in range(0, col_index):
                     #https://stackoverflow.com/questions/15589517/how-to-crop-an-image-in-opencv-using-python
                     chip_img = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
 
                     #specify the path to save the image
-                    chips_save_path = os.path.join(self.chips_dir, file_name+ '_'+ \
-                               str(count).zfill(6) + '.jpg') # The index is a six-digit number like '000023'.
+                    chip_name_correct_chip_name = file_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' #
+
+                    chips_save_path = os.path.join(self.chips_dir, chip_name_correct_chip_name) # row_col.jpg
 
                     #add in back space if it is the edge of an image
+                    if (chip_img.shape[0] != 512) & (chip_img.shape[1] != 512): #width
+                        #print("Incorrect Width")
+                        chip = np.zeros((512,512,3))
+                        chip[0:chip_img.shape[0], 0:chip_img.shape[1]] = chip_img
+                        chip_img = chip
                     if chip_img.shape[0] != 512:  #Height
                         #print("Incorrect Height")
                         black_height = 512  - chip_img.shape[0] #Height
-                        black_width = 512 #- chip_img.shape[1] #width
+                        black_width = 512 
                         black_img = np.zeros((black_height,black_width,3), np.uint8)
-                        #print(black_img.shape[0]) #Height
-                        #print(black_img.shape[1]) #width
                         chip_img = np.concatenate([chip_img, black_img])
-
                     if chip_img.shape[1] != 512: #width
                         #print("Incorrect Width")
-                        black_height = 512 #- chip_img.shape[0] #Height
+                        black_height = 512 
                         black_width = 512 - chip_img.shape[1] #width
                         black_img = np.zeros((black_height,black_width,3), np.uint8)
-                        #print(black_img.shape[0]) #Height
-                        #print(black_img.shape[1]) #width
                         chip_img = np.concatenate([chip_img, black_img],1)
-
                     #save image
                     cv2.imwrite(os.path.join(chips_save_path), chip_img)    
                     #counter for image pathway

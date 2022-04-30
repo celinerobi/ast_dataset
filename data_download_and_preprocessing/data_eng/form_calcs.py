@@ -36,7 +36,33 @@ import xml.dom.minidom
 from xml.dom.minidom import parseString
 import xml.etree.ElementTree as et
 from xml.dom import minidom
+####### add chips to rechip folder ############################################################
 
+def add_chips_to_chip_folders(rechipped_image_path, tile_name):
+    """ 
+    Args:
+    remaining_chips_path(str): path to folder that will contain all of the remaining images that have not been labeled and correspond to tiles that have labeled images
+    tile_name(str): name of tile without of extension
+    Returns:
+    """
+    chips_path = os.path.join(rechipped_image_path, tile_name, "chips")
+    os.makedirs(chips_path, exist_ok=True)
+    
+    item_dim = int(512)
+    tile = cv2.imread(os.path.join(tiles_complete_dataset_path, tile_name + ".tif")) 
+    tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
+    row_index = math.ceil(tile_height/512) 
+    col_index = math.ceil(tile_width/512)
+    #print(row_index, col_index)
+
+    count = 1            
+    for y in range(0, row_index): #rows
+        for x in range(0, col_index): #cols
+            chip_img = fc.tile_to_chip_array(tile, x, y, item_dim)
+            #specify the chip names
+            chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' # The index is a six-digit number like '000023'.
+            if not os.path.exists(os.path.join(chips_path, chip_name_correct_chip_name)):
+                cv2.imwrite(os.path.join(chips_path, chip_name_correct_chip_name), chip_img) #save images  
 ####### Remove Thumbs ############################################################
 def remove_thumbs(path_to_folder_containing_images):
     """ Remove Thumbs.db file from a given folder
@@ -331,8 +357,6 @@ def determine_tile_SE_NW_lat_lon_size(tile_path, tile_name):
     lats = da['y']
     return(lons, lats, tile_band, tile_height, tile_width)
 
-
-    return(image_characteristics)
 def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verified_positive_jpgs):
     """
     Only characterisizes images for which the corresponding tile is downloaded
@@ -347,7 +371,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     tile_dimensions = []
     NW_coordinates_lonlat_tile = []
     SE_coordinates_lonlat_tile = []
-    
+
     chip_names = []
     tile_names_by_chip = []
     tile_paths_by_chip = []
@@ -359,7 +383,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     col_indicies = []
     image_paths  = []
     xml_paths = []
-    
+
     item_dim = int(512)
     folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
@@ -376,8 +400,10 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
         tile_paths_by_tile.append(tile_path)
         #determine the lat/lon for each tile 
         lons, lats, tile_band, tile_height, tile_width = determine_tile_SE_NW_lat_lon_size(tiles_dir, tile_name + ".tif")
-        NW_coordinates_lonlat_tile = [lons[0], lats[0]]
-        SE_coordinates_lonlat_tile = [lons[-1],lats[-1]]
+        lons = np.array(lons)
+        lats = np.array(lats)
+        NW_coordinates_lonlat_tile.append([lons[0], lats[0]])
+        SE_coordinates_lonlat_tile.append([lons[-1],lats[-1]])
         tile_dimensions.append([tile_height, tile_width, tile_band])
 
         for positive_image in positive_images:
@@ -408,7 +434,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
 
     #create pandas dataframe
     tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, 
-                                               'tile_dimensions': tile_dimensions, 'col_indicies': col_indicies,
+                                               'tile_dimensions': tile_dimensions,
                                                'NW_coordinates_lonlat_tile': NW_coordinates_lonlat_tile,
                                                'SE_coordinates_lonlat_tile': SE_coordinates_lonlat_tile})
     tile_characteristics.to_csv("tile_characteristics.csv")
@@ -418,11 +444,55 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
                                                'NW_pixel_coordinates_pixel': NW_coordinates_pixel,'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
                                                'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat, 'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat})
     image_characteristics.to_csv("image_characteristics.csv")
-
     return(tile_characteristics, image_characteristics)
 ###################################################################################################################
 ###################################### Combine XMLs for each tile##################################################
 ###################################################################################################################
+def correct_inconsistent_labels_xml(xml_dir):
+    #Create a list of the possible names that each category may take 
+    correctly_formatted_object = ["closed_roof_tank","narrow_closed_roof_tank",
+                                  "external_floating_roof_tank","sedimentation_tank",
+                                  "water_tower","undefined_object","spherical_tank"] 
+    object_dict = {"closed_roof_tank": "closed_roof_tank",
+                   "closed_roof_tank ": "closed_roof_tank",
+                   "closed roof tank": "closed_roof_tank",
+                   "narrow_closed_roof_tank": "narrow_closed_roof_tank",
+                   "external_floating_roof_tank": "external_floating_roof_tank",
+                   "external floating roof tank": "external_floating_roof_tank",
+                   'external_floating_roof_tank ': "external_floating_roof_tank",
+                   "water_treatment_tank": "sedimentation_tank",
+                   'water_treatment_tank ': "sedimentation_tank",
+                   "water_treatment_plant": "sedimentation_tank",
+                   "water_treatment_facility": "sedimentation_tank",
+                   "water_tower": "water_tower",
+                   "water_tower ": "water_tower",
+                   'water_towe': "water_tower",
+                   "spherical_tank":"spherical_tank",
+                   'sphere':"spherical_tank",
+                   'spherical tank':"spherical_tank",
+                   "undefined_object": "undefined_object",
+                   "silo": "undefined_object" }
+
+    #"enumerate each image" This chunk is actually just getting the paths for the images and annotations
+    for xml_file in os.listdir(xml_dir):
+        # use the parse() function to load and parse an XML file
+        tree = et.parse(os.path.join(xml_dir, xml_file))
+        root = tree.getroot()         
+        
+        for obj in root.iter('object'):
+            for name in obj.findall('name'):
+                if name.text not in correctly_formatted_object:
+                    name.text = object_dict[name.text]
+
+            if int(obj.find('difficult').text) == 1:
+                obj.find('truncated').text = '1'
+                obj.find('difficult').text = '1'
+            if int(obj.find('truncated').text) == 1:
+                obj.find('truncated').text = '1'
+                obj.find('difficult').text = '1'
+
+        tree.write(os.path.join(xml_dir, xml_file))       
+                
 def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year, 
                 tile_width, tile_height, tile_band):
     tile_name_ext = tile_name + ".tif"
@@ -461,7 +531,7 @@ def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year,
     tree = et.ElementTree(root)
     et.indent(tree, space="\t", level=0)
     #tree.write("filename.xml")
-    tree.write(os.path.join(xml_directory, tile_name +".xml"))
+    tree.write(os.path.join(xml_directory, tile_name +".xml"))     
     
 def add_objects(xml_directory, tile_name, obj_class, 
                 obj_truncated, obj_difficult, obj_xmin, obj_ymin,
@@ -504,9 +574,9 @@ def add_objects(xml_directory, tile_name, obj_class,
     root.append(obj)
     tree = et.ElementTree(root)
     et.indent(tree, space="\t", level=0)
-    tree.write(os.path.join(xml_directory, tile_name +".xml"))
+    tree.write(os.path.join(xml_directory, tile_name +".xml"))   
     
-def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path):
+def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path, item_dim):
     folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
         tile_name_ext = tile_name + ".tif"
@@ -532,7 +602,9 @@ def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path):
             root = tree.getroot()
             #create the tile xml
             if index == 0:
-                 create_tile_xml(tile_name, tiles_xml_path, resolution.text, year.text, 
+                resolution = root.find('resolution').text
+                year = root.find('year').text
+                create_tile_xml(tile_name, tiles_xml_path, resolution, year, 
                                 tile_width, tile_height, tile_band)
             #add the bounding boxes
             for obj in root.iter('object'):
@@ -541,8 +613,102 @@ def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path):
                 obj_xmax = str(int(xmlbox.find('xmax').text) + minx)
                 obj_ymin = str(int(xmlbox.find('ymin').text) + miny)
                 obj_ymax = str(int(xmlbox.find('ymax').text) + miny)
-                add_objects(tiles_xml_path, tile_name, obj.find('name').text,obj.find('truncated').text, 
+                add_objects(tiles_xml_path, tile_name, obj.find('name').text, obj.find('truncated').text, 
                             obj.find('difficult').text, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
+
+#Generate two text boxes a larger one that covers them
+def merge_boxes(box1, box2):
+    return [min(box1[0], box2[0]), 
+         min(box1[1], box2[1]), 
+         max(box1[2], box2[2]),
+         max(box1[3], box2[3])]
+
+#Computer a Matrix similarity of distances of the text and object
+def calc_sim(obj1, obj2,dist_limit):
+    # text: ymin, xmin, ymax, xmax
+    # obj: ymin, xmin, ymax, xmax
+    obj1_xmin, obj1_ymin, obj1_xmax, obj1_ymax = obj1
+    obj2_xmin, obj2_ymin, obj2_xmax, obj2_ymax = obj2
+
+    x_dist = min(abs(obj2_xmin-obj1_xmax), abs(obj2_xmax-obj1_xmin))
+    y_dist = min(abs(obj2_ymin-obj1_ymax), abs(obj2_ymax-obj1_ymin))
+    
+    #define distance if one object is inside the other
+    if (obj2_xmin <= obj1_xmin) and (obj2_ymax >= obj1_ymax):
+        return(True)
+    elif (obj1_xmin <= obj2_xmin) and (obj1_ymax >= obj2_ymax):
+        return(True)
+    elif (x_dist <= dist_limit) and (abs(obj2_ymin-obj1_ymin) <= dist_limit*3) and (abs(obj2_ymax-obj1_ymax) <= dist_limit*3):
+        return(True)
+    elif (y_dist <= dist_limit) and (abs(obj2_xmin-obj1_ymin) <= dist_limit*3) and (abs(obj2_xmax-obj1_xmax) <= dist_limit*3):
+        return(True)
+    else: 
+        return(False)
+
+def merge_algo(characteristics, bboxes, dist_limit):
+    for i, (char1, bbox1) in enumerate(zip(characteristics, bboxes)):
+        for j, (char2, bbox2) in enumerate(zip(characteristics, bboxes)):
+            if j <= i:
+                continue
+            # Create a new box if a distances is less than disctance limit defined 
+            merge_bool = calc_sim(bbox1, bbox2, dist_limit) 
+            if merge_bool == True:
+            # Create a new box  
+                new_box = merge_boxes(bbox1, bbox2)   
+                bboxes[i] = new_box
+                #delete previous text boxes
+                del bboxes[j]
+                
+                # Create a new text string
+                if char1[0] != char2[0]:
+                    characteristics[i] = ['undefined_object', 'Unspecified', '1', '1']
+                characteristics[i] = [char1[0], 'Unspecified', '1', '1']
+                #delete previous text 
+                del characteristics[j]
+                
+                #return a new boxes and new text string that are close
+                return True, characteristics, bboxes
+    return False, characteristics, bboxes
+
+def merge_tile_annotations(tiles_xml_list, tiles_xml_dir, new_tiles_xml_dir, distance_limit):
+    # https://stackoverflow.com/questions/55593506/merge-the-bounding-boxes-near-by-into-one
+    for tile_xml in tqdm.tqdm(tiles_xml_list):
+        tile_name = os.path.splitext(tile_xml)[0]
+        tile_xml_path = os.path.join(tiles_xml_dir, tile_xml)
+        #load each xml
+        tree = et.parse(tile_xml_path)
+        root = tree.getroot()
+        #load each xml
+        trunc_diff_objs_characteristics = []
+        trunc_diff_objs_bbox = []
+
+        #get the bboxes
+        for obj in root.iter('object'):
+            xmlbox = obj.find('bndbox')
+            obj_xmin = xmlbox.find('xmin').text
+            obj_ymin = xmlbox.find('ymin').text
+            obj_xmax = xmlbox.find('xmax').text
+            obj_ymax = xmlbox.find('ymax').text
+            #get truncated bboxes
+            if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1):
+                #get bboxes/characteristics
+                trunc_diff_objs_bbox.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
+                trunc_diff_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
+                                                        obj.find('truncated').text, obj.find('difficult').text])
+                #remove objects
+                root.remove(obj)
+
+        trunc_diff_objs_bbox = np.array(trunc_diff_objs_bbox).astype(np.int32)
+        trunc_diff_objs_bbox = trunc_diff_objs_bbox.tolist()
+
+        #merge where possible
+        bool_, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,trunc_diff_objs_bbox,distance_limit)
+        #add merged bboxes
+        for j, (char, bbox) in enumerate(zip(merged_characteristics, merged_bboxes)):
+            add_objects(tiles_xml_dir, tile_name, char[0], char[2], char[3],
+                    bbox[0], bbox[1], bbox[2], bbox[3])
+        #write tree
+        tree.write(os.path.join(new_tiles_xml_dir, tile_xml))   
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
@@ -574,8 +740,8 @@ def incorrectly_chipped_image_and_correctly_chipped_names(incorrectly_chipped_im
     xs = []
 
     count = 1            
-    for y in range(0, row_index):
-        for x in range(0, row_index):
+    for y in range(0, row_index): #rows
+        for x in range(0, row_index): #cols
             chip_img = tile_to_chip_array(tile, x, y, item_dim)
 
             #specify the chip names
@@ -785,8 +951,8 @@ def identify_correct_images(tile_dir, tiles_in_directory,
         col_index = math.ceil(tile_width/512)
 
         count = 1  
-        for y in range(0, col_index):
-            for x in range(0, row_index):
+        for y in range(0, col_index): #rows
+            for x in range(0, row_index): #cols
                 chip_name_temp = file_name+ '_' + str(count).zfill(6) + '.jpg'
                 #create a numpy array of each correctly chipped images 
                 correct_image = tile_to_chip_array(tile, x, y, item_dim)
