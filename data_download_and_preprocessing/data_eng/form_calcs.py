@@ -368,9 +368,14 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     """ 
     tile_names_by_tile = []
     tile_paths_by_tile = []
-    tile_dimensions = []
-    NW_coordinates_lonlat_tile = []
-    SE_coordinates_lonlat_tile = []
+    tile_heights = []
+    tile_widths = []
+    tile_depths = []
+
+    min_lon_tile = [] #NW_coordinates
+    min_lat_tile = []  #NW_coordinates
+    max_lon_tile = [] #SE_coordinates
+    max_lat_tile = [] #SE_coordinates
 
     chip_names = []
     tile_names_by_chip = []
@@ -400,12 +405,16 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
         tile_paths_by_tile.append(tile_path)
         #determine the lat/lon for each tile 
         lons, lats, tile_band, tile_height, tile_width = determine_tile_SE_NW_lat_lon_size(tiles_dir, tile_name + ".tif")
+        tile_heights.append(tile_height)
+        tile_widths.append(tile_width)
+        tile_depths.append(tile_band)
         lons = np.array(lons)
         lats = np.array(lats)
-        NW_coordinates_lonlat_tile.append([lons[0], lats[0]])
-        SE_coordinates_lonlat_tile.append([lons[-1],lats[-1]])
-        tile_dimensions.append([tile_height, tile_width, tile_band])
-
+        min_lon_tile.append(lons[0]) #NW_coordinates
+        min_lat_tile.append(lats[0]) #NW_coordinates
+        max_lon_tile.append(lons[-1]) #SE_coordinates
+        max_lat_tile.append(lats[-1]) #SE_coordinates
+        """
         for positive_image in positive_images:
             #tile and chip names
             chip_name = os.path.splitext(positive_image)[0]
@@ -431,20 +440,22 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
             #determine the lat/lon
             NW_coordinates_lonlat.append([lons[minx], lats[miny]]) #NW (max: Top Left) # used for numpy crop
             SE_coordinates_lonlat.append([lons[maxx], lats[maxy]]) #SE (min: Bottom right)             
-
+        """
     #create pandas dataframe
     tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, 
-                                               'tile_dimensions': tile_dimensions,
-                                               'NW_coordinates_lonlat_tile': NW_coordinates_lonlat_tile,
-                                               'SE_coordinates_lonlat_tile': SE_coordinates_lonlat_tile})
+                                              'tile_heights': tile_heights,'tile_widths': tile_widths, 'tile_depths': tile_depths,
+                                              'min_lon_tile': min_lon_tile,'min_lat_tile': min_lat_tile,
+                                              'max_lon_tile': max_lon_tile,'max_lat_tile': max_lat_tile})
     tile_characteristics.to_csv("tile_characteristics.csv")
+    """
     image_characteristics = pd.DataFrame(data={'chip_name': chip_names, 'image_path': image_paths, 'xml_path': xml_paths,                    
                                                'tile_name': tile_names_by_chip, 'tile_path': tile_paths_by_chip, 
                                                'row_indicies': row_indicies, 'col_indicies': col_indicies,
                                                'NW_pixel_coordinates_pixel': NW_coordinates_pixel,'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
                                                'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat, 'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat})
     image_characteristics.to_csv("image_characteristics.csv")
-    return(tile_characteristics, image_characteristics)
+    """
+    return(tile_characteristics)#, image_characteristics)
 ###################################################################################################################
 ###################################### Combine XMLs for each tile##################################################
 ###################################################################################################################
@@ -629,21 +640,22 @@ def calc_sim(obj1, obj2,dist_limit):
     # obj: ymin, xmin, ymax, xmax
     obj1_xmin, obj1_ymin, obj1_xmax, obj1_ymax = obj1
     obj2_xmin, obj2_ymin, obj2_xmax, obj2_ymax = obj2
-
     x_dist = min(abs(obj2_xmin-obj1_xmax), abs(obj2_xmax-obj1_xmin))
     y_dist = min(abs(obj2_ymin-obj1_ymax), abs(obj2_ymax-obj1_ymin))
-    
+        
     #define distance if one object is inside the other
-    if (obj2_xmin <= obj1_xmin) and (obj2_ymax >= obj1_ymax):
+    if (obj2_xmin <= obj1_xmin) and (obj2_ymin <= obj1_ymin) and (obj2_xmax >= obj1_xmax) and (obj2_ymax >= obj1_ymax):
         return(True)
-    elif (obj1_xmin <= obj2_xmin) and (obj1_ymax >= obj2_ymax):
+    elif (obj1_xmin <= obj2_xmin) and (obj1_ymin <= obj2_ymin) and (obj1_xmax >= obj2_xmax) and (obj1_ymax >= obj2_ymax):
         return(True)
+    #define distance if one object is inside the other
     elif (x_dist <= dist_limit) and (abs(obj2_ymin-obj1_ymin) <= dist_limit*3) and (abs(obj2_ymax-obj1_ymax) <= dist_limit*3):
         return(True)
-    elif (y_dist <= dist_limit) and (abs(obj2_xmin-obj1_ymin) <= dist_limit*3) and (abs(obj2_xmax-obj1_xmax) <= dist_limit*3):
+    elif (y_dist <= dist_limit) and (abs(obj2_xmin-obj1_xmin) <= dist_limit*3) and (abs(obj2_xmax-obj1_xmax) <= dist_limit*3):
         return(True)
     else: 
         return(False)
+    
 
 def merge_algo(characteristics, bboxes, dist_limit):
     for i, (char1, bbox1) in enumerate(zip(characteristics, bboxes)):
@@ -746,7 +758,7 @@ def incorrectly_chipped_image_and_correctly_chipped_names(incorrectly_chipped_im
 
             #specify the chip names
             chip_name_incorrect_chip_name = tile_name + '_'+ str(count).zfill(6) + '.jpg'
-            chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' # The index is a six-digit number like '000023'.
+            chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' # row_cols
             if not os.path.exists(os.path.join(incorrectly_chipped_images_path, chip_name_incorrect_chip_name)):
                 cv2.imwrite(os.path.join(incorrectly_chipped_images_path, chip_name_incorrect_chip_name), chip_img) #save images       
 
