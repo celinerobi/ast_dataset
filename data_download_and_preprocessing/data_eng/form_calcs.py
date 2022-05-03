@@ -354,7 +354,7 @@ def determine_tile_SE_NW_lat_lon_size(tile_path, tile_name):
     # lons, lats = np.meshgrid(da['x'], da['y'])
     tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
     lons = da['x']
-    lats = da['y']
+    lats = np.flip(da['y'])
     return(lons, lats, tile_band, tile_height, tile_width)
 
 def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verified_positive_jpgs):
@@ -366,12 +366,12 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     Returns:
     image_characteristics(pandadataframe):containing image characterisitcs 
     """ 
+    #tile 
     tile_names_by_tile = []
     tile_paths_by_tile = []
     tile_heights = []
     tile_widths = []
     tile_depths = []
-
     min_lon_tile = [] #NW_coordinates
     min_lat_tile = []  #NW_coordinates
     max_lon_tile = [] #SE_coordinates
@@ -380,10 +380,14 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     chip_names = []
     tile_names_by_chip = []
     tile_paths_by_chip = []
-    NW_coordinates_pixel = []
-    SE_coordinates_pixel = []
-    NW_coordinates_lonlat = []
-    SE_coordinates_lonlat = []
+    minx_pixel = []
+    miny_pixel = []
+    maxx_pixel = []
+    maxy_pixel = []
+    min_lon_chip = [] #NW_coordinates
+    min_lat_chip = [] #NW_coordinates
+    max_lon_chip = [] #SE_coordinates
+    max_lat_chip = [] #SE_coordinates
     row_indicies = []
     col_indicies = []
     image_paths  = []
@@ -414,7 +418,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
         min_lat_tile.append(lats[0]) #NW_coordinates
         max_lon_tile.append(lons[-1]) #SE_coordinates
         max_lat_tile.append(lats[-1]) #SE_coordinates
-        """
+        
         for positive_image in positive_images:
             #tile and chip names
             chip_name = os.path.splitext(positive_image)[0]
@@ -435,27 +439,30 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
             miny = y*item_dim
             maxx = x*item_dim + item_dim - 1
             maxy = y*item_dim + item_dim - 1
-            NW_coordinates_pixel.append([minx, miny]) #NW (max: Top Left) # used for numpy crop
-            SE_coordinates_pixel.append([maxx, maxy]) #SE (min: Bottom right) 
+            minx_pixel.append(minx) #NW (max: Top Left) # used for numpy crop
+            miny_pixel.append(miny) #NW (max: Top Left) # used for numpy crop
+            maxx_pixel.append(maxx) #SE (min: Bottom right) 
+            maxy_pixel.append(maxy) #SE (min: Bottom right) 
             #determine the lat/lon
-            NW_coordinates_lonlat.append([lons[minx], lats[miny]]) #NW (max: Top Left) # used for numpy crop
-            SE_coordinates_lonlat.append([lons[maxx], lats[maxy]]) #SE (min: Bottom right)             
-        """
-    #create pandas dataframe
+            min_lon_chip.append(lons[minx]) #NW (max: Top Left) # used for numpy crop
+            min_lat_chip.append(lats[miny]) #NW (max: Top Left) # used for numpy crop
+            max_lon_chip.append(lons[maxx]) #SE (min: Bottom right) 
+            max_lat_chip.append(lats[maxy]) #SE (min: Bottom right)           
+            #create pandas dataframe
     tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, 
                                               'tile_heights': tile_heights,'tile_widths': tile_widths, 'tile_depths': tile_depths,
                                               'min_lon_tile': min_lon_tile,'min_lat_tile': min_lat_tile,
                                               'max_lon_tile': max_lon_tile,'max_lat_tile': max_lat_tile})
     tile_characteristics.to_csv("tile_characteristics.csv")
-    """
     image_characteristics = pd.DataFrame(data={'chip_name': chip_names, 'image_path': image_paths, 'xml_path': xml_paths,                    
                                                'tile_name': tile_names_by_chip, 'tile_path': tile_paths_by_chip, 
                                                'row_indicies': row_indicies, 'col_indicies': col_indicies,
-                                               'NW_pixel_coordinates_pixel': NW_coordinates_pixel,'SE_pixel_coordinates_pixel': SE_coordinates_pixel,
-                                               'NW_pixel_coordinates_lonlat': NW_coordinates_lonlat, 'SE_pixel_coordinates_lonlat': SE_coordinates_lonlat})
+                                               'minx_pixel': minx_pixel,'miny_pixel': miny_pixel,
+                                               'maxx_pixel': maxx_pixel,'maxy_pixel': maxy_pixel,
+                                               'min_lon_chip': min_lon_chip,'min_lat_chip': min_lat_chip,
+                                               'max_lon_chip': max_lon_chip, 'max_lat_chip': max_lat_chip})
     image_characteristics.to_csv("image_characteristics.csv")
-    """
-    return(tile_characteristics)#, image_characteristics)
+    return(tile_characteristics, image_characteristics)
 ###################################################################################################################
 ###################################### Combine XMLs for each tile##################################################
 ###################################################################################################################
