@@ -15,7 +15,10 @@ import pandas as pd
 import rioxarray
 #import re
 #import rtree
-#import shapely
+import fiona #must be import before geopandas
+import geopandas as gpd
+import shapely
+from shapely.geometry import Polygon, Point, MultiPoint, MultiPolygon, MultiLineString
 #import pickle
 import tqdm
 from glob import glob
@@ -354,7 +357,7 @@ def determine_tile_SE_NW_lat_lon_size(tile_path, tile_name):
     # lons, lats = np.meshgrid(da['x'], da['y'])
     tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
     lons = da['x']
-    lats = np.flip(da['y'])
+    lats = da['y']
     return(lons, lats, tile_band, tile_height, tile_width)
 
 def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verified_positive_jpgs):
@@ -689,18 +692,37 @@ def merge_algo(characteristics, bboxes, dist_limit):
                 return True, characteristics, bboxes
     return False, characteristics, bboxes
 
-def merge_tile_annotations(tiles_xml_list, tiles_xml_dir, new_tiles_xml_dir, distance_limit):
+def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, tiles_xml_list = None):
     # https://stackoverflow.com/questions/55593506/merge-the-bounding-boxes-near-by-into-one
+    #specify tiles_xml_list
+    if tiles_xml_list is None: #if tiles_xml_list not provided, specify the tiles xml list
+        tiles_xml_list = os.listdir(tiles_xml_dir)
+    #lists for geosons/geodatabase
+    tile_names = []
+    object_class = []
+    merged_bbox = []
+    geometry = []                         
     for tile_xml in tqdm.tqdm(tiles_xml_list):
+        #save bboxes and characteristics
+        trunc_diff_objs_bboxes = []
+        trunc_diff_objs_characteristics = []
+        remaining_objs_bboxes = []
+        remaining_objs_characteristics = []
+        #get tilename/tile xml path
         tile_name = os.path.splitext(tile_xml)[0]
         tile_xml_path = os.path.join(tiles_xml_dir, tile_xml)
+        #load tile characteristics 
+        tile_characteristics_subset = tile_characteristics[tile_characteristics.loc[:,"tile_name"] == tile_name]
+        tile_lat_array = np.linspace(tile_characteristics_subset["min_lat_tile"].values[0], 
+                                     tile_characteristics_subset["max_lat_tile"].values[0],
+                                     tile_characteristics_subset["tile_heights"].values[0])
+
+        tile_lon_array = np.linspace(tile_characteristics_subset["min_lon_tile"].values[0], 
+                                     tile_characteristics_subset["max_lon_tile"].values[0],
+                                     tile_characteristics_subset["tile_widths"].values[0])
         #load each xml
         tree = et.parse(tile_xml_path)
         root = tree.getroot()
-        #load each xml
-        trunc_diff_objs_characteristics = []
-        trunc_diff_objs_bbox = []
-
         #get the bboxes
         for obj in root.iter('object'):
             xmlbox = obj.find('bndbox')
@@ -711,23 +733,53 @@ def merge_tile_annotations(tiles_xml_list, tiles_xml_dir, new_tiles_xml_dir, dis
             #get truncated bboxes
             if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1):
                 #get bboxes/characteristics
-                trunc_diff_objs_bbox.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
+                trunc_diff_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
                 trunc_diff_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
                                                         obj.find('truncated').text, obj.find('difficult').text])
-                #remove objects
-                root.remove(obj)
-
-        trunc_diff_objs_bbox = np.array(trunc_diff_objs_bbox).astype(np.int32)
-        trunc_diff_objs_bbox = trunc_diff_objs_bbox.tolist()
-
+            else:        
+                remaining_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
+                remaining_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
+                                                       obj.find('truncated').text, obj.find('difficult').text])
+        
         #merge where possible
-        bool_, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,trunc_diff_objs_bbox,distance_limit)
+        trunc_diff_objs_bboxes = np.array(trunc_diff_objs_bboxes).astype(np.int32)
+        trunc_diff_objs_bboxes = trunc_diff_objs_bboxes.tolist()
+        bool_, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,
+                                                                      trunc_diff_objs_bboxes, distance_limit)
+        #merged_bboxes = np.array(merged_bboxes).astype(np.int32)
+        #merged_bboxes = merged_bboxes.tolist()
         #add merged bboxes
         for j, (char, bbox) in enumerate(zip(merged_characteristics, merged_bboxes)):
-            add_objects(tiles_xml_dir, tile_name, char[0], char[2], char[3],
-                    bbox[0], bbox[1], bbox[2], bbox[3])
-        #write tree
-        tree.write(os.path.join(new_tiles_xml_dir, tile_xml))   
+            tile_names.append(tile_name)
+            object_class.append(char[0])
+            merged_bbox.append(True)
+            min_lon = tile_lon_array[bbox[0]]
+            max_lon = tile_lon_array[bbox[2]]
+            min_lat = tile_lat_array[bbox[1]]
+            max_lat = tile_lat_array[bbox[3]]
+            geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),
+                                     (max_lon,max_lat),(max_lon,min_lat)]))
+
+        remaining_objs_bboxes = np.array(remaining_objs_bboxes).astype(np.int32)
+        remaining_objs_bboxes = remaining_objs_bboxes.tolist()
+        #add remaining bboxes
+        for j, (char, bbox) in enumerate(zip(remaining_objs_characteristics,remaining_objs_bboxes)):
+            tile_names.append(tile_name)
+            object_class.append(char[0])
+            merged_bbox.append(False)
+            min_lon = tile_lon_array[bbox[0]]
+            max_lon = tile_lon_array[bbox[2]]
+            min_lat = tile_lat_array[bbox[1]]
+            max_lat = tile_lat_array[bbox[3]]
+            #print(min_lon,min_lat,max_lon,max_lat)
+            geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)]))
+    
+    d = {'tile_names': tile_names,'object_class': object_class, 'merged_bbox': merged_bbox,'geometry': geometry}
+    gdf = gpd.GeoDataFrame(d)
+    return(min_lon,min_lat,max_lon,max_lat)
+    #return(d, gdf)  
+        
+        
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
