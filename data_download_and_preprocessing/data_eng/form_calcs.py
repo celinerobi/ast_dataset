@@ -1,4 +1,4 @@
-f"""
+"""
 Functions to process, format, and conduct calculations on the annotated or verified dataset
 """
 # Standard packages
@@ -8,18 +8,18 @@ import urllib
 import shutil
 import os
 import math 
-
+import json
 import numpy as np
 import pandas as pd
-#import rasterio
-import rioxarray
-#import re
-#import rtree
+
 import fiona #must be import before geopandas
 import geopandas as gpd
+import rasterio
+import rioxarray
+import re
+import rtree
 import shapely
 from shapely.geometry import Polygon, Point, MultiPoint, MultiPolygon, MultiLineString
-#import pickle
 import tqdm
 from glob import glob
 
@@ -692,7 +692,15 @@ def merge_algo(characteristics, bboxes, dist_limit):
                 return True, characteristics, bboxes
     return False, characteristics, bboxes
 
-def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, tiles_xml_list = None):
+def calculate_diameter(bbox, resolution = 0.6):
+    obj_xmin, obj_ymin, obj_xmax, obj_ymax = bbox
+    obj_width = obj_xmax - obj_xmin
+    obj_height = obj_ymax - obj_ymin
+    diameter = min(obj_width, obj_height) * resolution #meter
+    return(diameter)
+
+def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list = None, 
+                           distance_limit = 5):
     # https://stackoverflow.com/questions/55593506/merge-the-bounding-boxes-near-by-into-one
     #specify tiles_xml_list
     if tiles_xml_list is None: #if tiles_xml_list not provided, specify the tiles xml list
@@ -701,7 +709,8 @@ def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, 
     tile_names = []
     object_class = []
     merged_bbox = []
-    geometry = []                         
+    geometry = []      
+    diameter = []
     for tile_xml in tqdm.tqdm(tiles_xml_list):
         #save bboxes and characteristics
         trunc_diff_objs_bboxes = []
@@ -723,32 +732,25 @@ def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, 
         #load each xml
         tree = et.parse(tile_xml_path)
         root = tree.getroot()
-        #get the bboxes
         for obj in root.iter('object'):
-            xmlbox = obj.find('bndbox')
+            xmlbox = obj.find('bndbox') #get the bboxes
             obj_xmin = xmlbox.find('xmin').text
             obj_ymin = xmlbox.find('ymin').text
             obj_xmax = xmlbox.find('xmax').text
             obj_ymax = xmlbox.find('ymax').text
-            #get truncated bboxes
-            if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1):
-                #get bboxes/characteristics
+            if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1): #get truncated bboxes/characteristics
                 trunc_diff_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
                 trunc_diff_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
                                                         obj.find('truncated').text, obj.find('difficult').text])
-            else:        
+            else: #get remaining bboxes/characteristics
                 remaining_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
                 remaining_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
                                                        obj.find('truncated').text, obj.find('difficult').text])
-        
-        #merge where possible
+        #add merge bboxes
         trunc_diff_objs_bboxes = np.array(trunc_diff_objs_bboxes).astype(np.int32)
         trunc_diff_objs_bboxes = trunc_diff_objs_bboxes.tolist()
         bool_, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,
-                                                                      trunc_diff_objs_bboxes, distance_limit)
-        #merged_bboxes = np.array(merged_bboxes).astype(np.int32)
-        #merged_bboxes = merged_bboxes.tolist()
-        #add merged bboxes
+                                                                      trunc_diff_objs_bboxes, distance_limit) #merge
         for j, (char, bbox) in enumerate(zip(merged_characteristics, merged_bboxes)):
             tile_names.append(tile_name)
             object_class.append(char[0])
@@ -757,12 +759,12 @@ def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, 
             max_lon = tile_lon_array[bbox[2]]
             min_lat = tile_lat_array[bbox[1]]
             max_lat = tile_lat_array[bbox[3]]
+            diameter.append(calculate_diameter(bbox))
             geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),
                                      (max_lon,max_lat),(max_lon,min_lat)]))
-
+        #add remaining bboxes
         remaining_objs_bboxes = np.array(remaining_objs_bboxes).astype(np.int32)
         remaining_objs_bboxes = remaining_objs_bboxes.tolist()
-        #add remaining bboxes
         for j, (char, bbox) in enumerate(zip(remaining_objs_characteristics,remaining_objs_bboxes)):
             tile_names.append(tile_name)
             object_class.append(char[0])
@@ -771,15 +773,82 @@ def merge_tile_annotations(tiles_xml_dir, tile_characteristics, distance_limit, 
             max_lon = tile_lon_array[bbox[2]]
             min_lat = tile_lat_array[bbox[1]]
             max_lat = tile_lat_array[bbox[3]]
-            #print(min_lon,min_lat,max_lon,max_lat)
+            diameter.append(calculate_diameter(bbox))
             geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)]))
-    
-    d = {'tile_names': tile_names,'object_class': object_class, 'merged_bbox': merged_bbox,'geometry': geometry}
+    #create geodatabase
+    d = {'tile_names': tile_names,'object_class': object_class, 'diameter(m)': diameter,
+         'merged_bbox': merged_bbox,'geometry': geometry}
     gdf = gpd.GeoDataFrame(d)
-    return(min_lon,min_lat,max_lon,max_lat)
-    #return(d, gdf)  
+    return(gdf)  
+
+def write_gdf(gdf, output_filepath, output_filename = 'tile_level_annotations'):
+    gdf.crs = "EPSG:4326" #assign projection
+    #save geodatabase 
+    with open(os.path.join(output_filepath,output_filename+".geojson"), 'w') as file:
+        file.write(gdf.to_json())   
+    gdf.to_file(os.path.join(output_filepath,output_filename+".shp"))
+
         
         
+######################################################################################################################################################
+######################################               Inundation Values for Tile Database            ##################################################
+######################################################################################################################################################
+      
+def getFeatures(gdf):
+    """Function to parse features from GeoDataFrame in such a manner that rasterio wants them"""
+    return [json.loads(gdf.to_json())['features'][0]['geometry']]
+
+def identify_inundation_for_tanks(gdf, sc_slosh_inundation_map_path): 
+                                  
+    #identify inundation bounds                               
+    category = []
+    geometry = []
+    for i in range(1,6): #get the bounding box polygons
+        sc_slosh_inundation_map_name = "SC_Category" + str(i) + "_MOM_Inundation_HighTide_EPSG4326.tif"
+        sc_slosh_inundation_map = rasterio.open(os.path.join(sc_slosh_inundation_map_path, sc_slosh_inundation_map_name))
+        min_lon, min_lat, max_lon, max_lat = sc_slosh_inundation_map.bounds
+        category.append("SC_Category" + str(i))
+        geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)]))
+
+    #make dataframe of inundation map bounds
+    d = {'category': category,'geometry': geometry}
+    sc_slosh = gpd.GeoDataFrame(d)
+
+    #idntify useful bounding box
+    if sc_slosh["geometry"].nunique() == 1: #all of the bounding boxes for the inundation maps are the same
+        sc_inundation_poly = sc_slosh["geometry"].unique()[0] 
+
+    #create dictionary for inundation values for each tank
+    inundation_level_for_tank = {}
+    for i in range(1,6): 
+        inundation_level_for_tank["Category" + str(i)] = np.zeros((len(gdf)))
+
+    #make a list to record whether the inundation level has been recorded
+    bbox_within_inundation_bounds = [False] * len(gdf)
+
+    #get inundation values
+    for index, poly in enumerate(gdf["geometry"]): #iterate over the polygons
+        if sc_inundation_poly.contains(poly): #identify whether the bbox is inside of the inundation map
+            bbox_within_inundation_bounds[index] = True #record that the bbox is within the inundation map
+            #make a geodatabaframe for each polygon that is 
+            geo = gpd.GeoDataFrame({'geometry': poly}, index=[0], crs="EPSG:4326")
+            coords = getFeatures(geo)
+            for i in range(1,6): #get the bounding box polygons
+                sc_slosh_inundation_map_name = "SC_Category" + str(i) + "_MOM_Inundation_HighTide_EPSG4326.tif"
+                sc_slosh_inundation_map = rasterio.open(os.path.join(sc_slosh_inundation_map_path, sc_slosh_inundation_map_name))
+                out_img, out_transform = rasterio.mask.mask(dataset=sc_slosh_inundation_map, shapes=coords, crop=True)
+                if np.all(out_img == 255): #check if all inundation values are equal the no value entry (255)
+                    inundation_level_for_tank["Category" + str(i)][index] = 0
+                else: 
+                    out_img = np.where(out_img >= 255, 0, out_img)
+                    inundation_level_for_tank["Category" + str(i)][index] = np.average(out_img)
+
+    #add inundation values to tank database 
+    gdf["bbox_within_inundation_bounds"] = bbox_within_inundation_bounds
+    for i in range(1,6): 
+        gdf["Category" + str(i)] = inundation_level_for_tank["Category" + str(i)]
+        
+    return(gdf)
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
