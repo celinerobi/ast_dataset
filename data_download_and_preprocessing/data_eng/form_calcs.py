@@ -466,6 +466,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
                                                'max_lon_chip': max_lon_chip, 'max_lat_chip': max_lat_chip})
     image_characteristics.to_csv("image_characteristics.csv")
     return(tile_characteristics, image_characteristics)
+
 ###################################################################################################################
 ###################################### Combine XMLs for each tile##################################################
 ###################################################################################################################
@@ -665,7 +666,6 @@ def calc_sim(obj1, obj2,dist_limit):
         return(True)
     else: 
         return(False)
-    
 
 def merge_algo(characteristics, bboxes, dist_limit):
     for i, (char1, bbox1) in enumerate(zip(characteristics, bboxes)):
@@ -788,8 +788,6 @@ def write_gdf(gdf, output_filepath, output_filename = 'tile_level_annotations'):
         file.write(gdf.to_json())   
     gdf.to_file(os.path.join(output_filepath,output_filename+".shp"))
 
-        
-        
 ######################################################################################################################################################
 ######################################               Inundation Values for Tile Database            ##################################################
 ######################################################################################################################################################
