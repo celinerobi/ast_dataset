@@ -556,8 +556,8 @@ def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year,
     tree.write(os.path.join(xml_directory, tile_name +".xml"))     
     
 def add_objects(xml_directory, tile_name, obj_class, 
-                obj_truncated, obj_difficult, obj_xmin, obj_ymin,
-                obj_xmax, obj_ymax):
+                obj_truncated, obj_difficult, obj_chip_name,
+                obj_xmin, obj_ymin, obj_xmax, obj_ymax):
     tree = et.parse(os.path.join(xml_directory, tile_name + ".xml"))
     root = tree.getroot() 
     obj = et.Element("object") #add size to xml
@@ -577,6 +577,10 @@ def add_objects(xml_directory, tile_name, obj_class,
     difficult = et.Element("difficult")
     difficult.text = str(obj_difficult)
     obj.insert(3, difficult)
+ 
+    chip_name = et.Element("chip_name")
+    chip_name.text = str(obj_chip_name)
+    obj.insert(4, chip_name)
 
     bndbox = et.Element("bndbox") #bounding box
     xmin = et.Element("xmin") #xmin
@@ -591,7 +595,7 @@ def add_objects(xml_directory, tile_name, obj_class,
     ymax = et.Element("ymax") #ymax
     ymax.text = str(obj_ymax) 
     bndbox.insert(3, ymax)
-    obj.insert(4, bndbox)
+    obj.insert(5, bndbox)
     
     root.append(obj)
     tree = et.ElementTree(root)
@@ -614,7 +618,8 @@ def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path, 
                        
         for index, chip_xml in enumerate(positive_xmls):
             #identify rows and columns
-            y, x = os.path.splitext(chip_xml)[0].split("_")[-2:] #name of tif with the extension removed; y=row;x=col
+            chip_name = os.path.splitext(chip_xml)[0]
+            y, x = chip_name.split("_")[-2:] #name of tif with the extension removed; y=row;x=col
             y = int(y)
             x = int(x)
             minx = x*item_dim
@@ -636,7 +641,7 @@ def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path, 
                 obj_ymin = str(int(xmlbox.find('ymin').text) + miny)
                 obj_ymax = str(int(xmlbox.find('ymax').text) + miny)
                 add_objects(tiles_xml_path, tile_name, obj.find('name').text, obj.find('truncated').text, 
-                            obj.find('difficult').text, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
+                            obj.find('difficult').text, chip_name, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
 
 #Generate two text boxes a larger one that covers them
 def merge_boxes(box1, box2):
@@ -668,6 +673,7 @@ def calc_sim(obj1, obj2,dist_limit):
         return(False)
 
 def merge_algo(characteristics, bboxes, dist_limit):
+    merge_bools = [False] * len(characteristics)
     for i, (char1, bbox1) in enumerate(zip(characteristics, bboxes)):
         for j, (char2, bbox2) in enumerate(zip(characteristics, bboxes)):
             if j <= i:
@@ -682,15 +688,30 @@ def merge_algo(characteristics, bboxes, dist_limit):
                 del bboxes[j]
                 
                 # Create a new text string
-                if char1[0] != char2[0]:
-                    characteristics[i] = ['undefined_object', 'Unspecified', '1', '1']
-                characteristics[i] = [char1[0], 'Unspecified', '1', '1']
+                ##chip_name list
+                if char1[0] != char2[0]: #if the chip_names are not the same
+                    #make chip_names into an array
+                    if type(char1[0]) == str: 
+                        chip_names_1 = np.array([char1[0]])
+                    if type(char2[0]) == str:
+                        chip_names_2 = np.array([char2[0]])
+                    chip_names = np.concatenate((chip_names_1, chip_names_2),axis=0)
+                    chip_names = np.unique(chip_names).tolist()
+                else:
+                    chip_names = np.unique(char1[0]).tolist()  #if the chip_names are not the same
+                
+                #get object type 
+                if char1[1] != char2[1]:
+                    object_type = 'undefined_object'
+                object_type = char1[1]
+                
+                characteristics[i] = [chip_names, object_type, 'Unspecified', '1', '1']
                 #delete previous text 
                 del characteristics[j]
                 
                 #return a new boxes and new text string that are close
-                return True, characteristics, bboxes
-    return False, characteristics, bboxes
+                merge_bools[i] = True
+    return merge_bools, characteristics, bboxes
 
 def calculate_diameter(bbox, resolution = 0.6):
     obj_xmin, obj_ymin, obj_xmax, obj_ymax = bbox
@@ -707,9 +728,21 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
         tiles_xml_list = os.listdir(tiles_xml_dir)
     #lists for geosons/geodatabase
     tile_names = []
+    chip_names = []
     object_class = []
     merged_bbox = []
-    geometry = []      
+    geometry = []  
+    minx_polygon_pixels = []
+    miny_polygon_pixels = []
+    maxx_polygon_pixels = []
+    maxy_polygon_pixels = []
+    polygon_vertices_pixels = []
+    nw_corner_polygon_lat = []
+    nw_corner_polygon_lon = []
+    se_corner_polygon_lat = []
+    se_corner_polygon_lon = []
+    polygon_vertices_lat_lon = []
+    
     diameter = []
     for tile_xml in tqdm.tqdm(tiles_xml_list):
         #save bboxes and characteristics
@@ -740,53 +773,100 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             obj_ymax = xmlbox.find('ymax').text
             if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1): #get truncated bboxes/characteristics
                 trunc_diff_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
-                trunc_diff_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
+                trunc_diff_objs_characteristics.append([obj.find('chip_name').text, obj.find('name').text, obj.find('pose').text, 
                                                         obj.find('truncated').text, obj.find('difficult').text])
             else: #get remaining bboxes/characteristics
                 remaining_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
-                remaining_objs_characteristics.append([obj.find('name').text, obj.find('pose').text, 
-                                                       obj.find('truncated').text, obj.find('difficult').text])
+                remaining_objs_characteristics.append([obj.find('chip_name').text, obj.find('name').text, obj.find('pose').text, 
+                                                        obj.find('truncated').text, obj.find('difficult').text])
         #add merge bboxes
         trunc_diff_objs_bboxes = np.array(trunc_diff_objs_bboxes).astype(np.int32)
         trunc_diff_objs_bboxes = trunc_diff_objs_bboxes.tolist()
-        bool_, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,
+        merged_bools, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,
                                                                       trunc_diff_objs_bboxes, distance_limit) #merge
-        for j, (char, bbox) in enumerate(zip(merged_characteristics, merged_bboxes)):
+        for j, (merged_bool, char, bbox) in enumerate(zip(merged_bools, merged_characteristics, merged_bboxes)):
             tile_names.append(tile_name)
-            object_class.append(char[0])
-            merged_bbox.append(True)
+            chip_names.append(char[0])
+            object_class.append(char[1])
+            #state whether bbox were merged
+            merged_bbox.append(merged_bool)
+            #geospatial data
             min_lon = tile_lon_array[bbox[0]]
             max_lon = tile_lon_array[bbox[2]]
             min_lat = tile_lat_array[bbox[1]]
             max_lat = tile_lat_array[bbox[3]]
-            diameter.append(calculate_diameter(bbox))
+            minx_polygon_pixels.append(bbox[0])
+            miny_polygon_pixels.append(bbox[1])
+            maxx_polygon_pixels.append(bbox[2])
+            maxy_polygon_pixels.append(bbox[3])
+            polygon_vertices_pixels.append([(bbox[0],bbox[1]),(bbox[0],bbox[3]),
+                                            (bbox[2],bbox[3]),(bbox[2],bbox[1])])
+            nw_corner_polygon_lat.append(min_lat)
+            nw_corner_polygon_lon.append(min_lon)
+            se_corner_polygon_lat.append(max_lat)
+            se_corner_polygon_lon.append(max_lon)
+            polygon_vertices_lat_lon.append([(min_lon,min_lat),(min_lon,max_lat),
+                                             (max_lon,max_lat),(max_lon,min_lat)])
             geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),
                                      (max_lon,max_lat),(max_lon,min_lat)]))
+            #calculate diameter
+            diameter.append(calculate_diameter(bbox))
         #add remaining bboxes
         remaining_objs_bboxes = np.array(remaining_objs_bboxes).astype(np.int32)
         remaining_objs_bboxes = remaining_objs_bboxes.tolist()
         for j, (char, bbox) in enumerate(zip(remaining_objs_characteristics,remaining_objs_bboxes)):
             tile_names.append(tile_name)
-            object_class.append(char[0])
-            merged_bbox.append(False)
+            chip_names.append(char[0])
+            object_class.append(char[1])
+            #state whether bbox were merged
+            merged_bbox.append(merged_bool)
+            #geospatial data
             min_lon = tile_lon_array[bbox[0]]
             max_lon = tile_lon_array[bbox[2]]
             min_lat = tile_lat_array[bbox[1]]
             max_lat = tile_lat_array[bbox[3]]
+            minx_polygon_pixels.append(bbox[0])
+            miny_polygon_pixels.append(bbox[1])
+            maxx_polygon_pixels.append(bbox[2])
+            maxy_polygon_pixels.append(bbox[3])
+            polygon_vertices_pixels.append([(bbox[0],bbox[1]),(bbox[0],bbox[3]),
+                                            (bbox[2],bbox[3]),(bbox[2],bbox[1])])
+            nw_corner_polygon_lat.append(min_lat)
+            nw_corner_polygon_lon.append(min_lon)
+            se_corner_polygon_lat.append(max_lat)
+            se_corner_polygon_lon.append(max_lon)
+            polygon_vertices_lat_lon.append([(min_lon,min_lat),(min_lon,max_lat),
+                                             (max_lon,max_lat),(max_lon,min_lat)])
+            geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),
+                                     (max_lon,max_lat),(max_lon,min_lat)]))
+            #calculate diameter
             diameter.append(calculate_diameter(bbox))
-            geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)]))
     #create geodatabase
-    d = {'tile_names': tile_names,'object_class': object_class, 'diameter(m)': diameter,
-         'merged_bbox': merged_bbox,'geometry': geometry}
+    d = {'tile_name': tile_names,'chip_name': chip_names, 
+            "minx_polygon_pixels": minx_polygon_pixels, "miny_polygon_pixels": miny_polygon_pixels, #min lon/lat
+            "maxx_polygon_pixels": maxx_polygon_pixels, "maxy_polygon_pixels": maxy_polygon_pixels, #max lat
+            "polygon_vertices_pixels": polygon_vertices_pixels, 
+            "nw_corner_polygon_lat": nw_corner_polygon_lat, "nw_corner_polygon_lon": nw_corner_polygon_lon,#min lon/lat
+            "se_corner_polygon_lat": se_corner_polygon_lat, "se_corner_polygon_lon": se_corner_polygon_lon, #min lon/lat
+            "polygon_vertices_lat_lon": polygon_vertices_lat_lon,'geometry': geometry, 
+            "object_class": object_class, 'diameter (m)': diameter, 'merged_bbox': merged_bbox}
     gdf = gpd.GeoDataFrame(d)
     return(gdf)  
 
 def write_gdf(gdf, output_filepath, output_filename = 'tile_level_annotations'):
     gdf.crs = "EPSG:4326" #assign projection
-    #save geodatabase 
-    with open(os.path.join(output_filepath,output_filename+".geojson"), 'w') as file:
-        file.write(gdf.to_json())   
-    gdf.to_file(os.path.join(output_filepath,output_filename+".shp"))
+
+    #save geodatabase as json
+    with open(os.path.join(output_filepath, output_filename+".json"), 'w') as file:
+        file.write(gdf.to_json()) 
+
+    ##save geodatabase as geojson 
+    with open(os.path.join(output_filepath, output_filename+".geojson"), "w") as file:
+        file.write(gdf.to_json()) 
+
+    ##save geodatabase as shapefile
+    gdf_shapefile = gdf.drop(columns=["chip_name","polygon_vertices_pixels","polygon_vertices_lat_lon"])
+    gdf_shapefile.to_file(os.path.join(output_filepath,output_filename+".shp"))
 
 ######################################################################################################################################################
 ######################################               Inundation Values for Tile Database            ##################################################
