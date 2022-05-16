@@ -78,7 +78,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student22_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Cleave --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Nayak --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4 
 
@@ -93,13 +93,11 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
 
-python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4\unverified_images
-
-Z:\verification_set3\unverified_images\student_reviewed_unverified_images
+python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images/student_reviewed_unverified_images_set5
 
 Troubleshooting:
 ValueError: all the input array dimensions for the concatenation axis must match exactly...
-Ensure tha: Thumbs.db files have been removed from the folder containing the images (chips_positive); files containing predefined classes have been removed from the folder containing annotations (chips_positive_xml); positive images have been copied to the correct folder (chip_positive).
+Ensure that: Thumbs.db files have been removed from the folder containing the images (chips_positive); files containing predefined classes have been removed from the folder containing annotations (chips_positive_xml); positive images have been copied to the correct folder (chip_positive).
 ## 4. Verification and Tracking
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
 
@@ -109,8 +107,8 @@ python verification_and_tracking.py     --tracker_file_path path_to_tracker_nump
                                         --set_number the_set_number
                                         --annotator_allocation annotator1 annotator2
 Example:
-python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Niculescu_Sunny_Cleave --annotator_allocation Feinberg Kang Poonacha --set_number 4
-
+python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Cleave_Sunny_Robinson --annotator_allocation Desbans Niculescu Poonacha --set_number 5
+ 
 ## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              

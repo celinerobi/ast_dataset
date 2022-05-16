@@ -39,8 +39,9 @@ import xml.dom.minidom
 from xml.dom.minidom import parseString
 import xml.etree.ElementTree as et
 from xml.dom import minidom
-####### add chips to rechip folder ############################################################
 
+
+####### add chips to rechip folder ############################################################
 def add_chips_to_chip_folders(rechipped_image_path, tile_name):
     """ 
     Args:
@@ -66,7 +67,10 @@ def add_chips_to_chip_folders(rechipped_image_path, tile_name):
             chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' # The index is a six-digit number like '000023'.
             if not os.path.exists(os.path.join(chips_path, chip_name_correct_chip_name)):
                 cv2.imwrite(os.path.join(chips_path, chip_name_correct_chip_name), chip_img) #save images  
-####### Remove Thumbs ############################################################
+
+############################################################################################################
+###########################################   Remove Thumbs    #############################################
+############################################################################################################
 def remove_thumbs(path_to_folder_containing_images):
     """ Remove Thumbs.db file from a given folder
     Args: 
@@ -88,7 +92,32 @@ def remove_thumbs_all_positive_chips(parent_directory):
         folder_name = os.path.basename(r) #identify folder name
         if 'chips_positive' == folder_name: #Specify folders that contain positive chips
             remove_thumbs(r)
-
+############################################################################################################
+###################     Reclassify Narrow Closed Roof and Closed Roof Tanks     ############################
+############################################################################################################
+def reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path):
+    #load each xml
+    class_ob = []
+    tree = et.parse(xml_path)
+    root = tree.getroot()
+    for obj in root.iter('object'):
+        name = obj.find("name").text 
+        xmlbox = obj.find('bndbox') #get the bboxes
+        obj_xmin = xmlbox.find('xmin').text
+        obj_ymin = xmlbox.find('ymin').text
+        obj_xmax = xmlbox.find('xmax').text
+        obj_ymax = xmlbox.find('ymax').text
+        width = int(obj_xmax) - int(obj_xmin)
+        height = int(obj_ymax) - int(obj_ymin)
+        if (int(obj.find('difficult').text) == 0) and (int(obj.find('truncated').text) == 0): 
+            #if a closed roof tank is less than or equal to the narrow closed roof tank threshold than reclassify as  narrow closed roof tank
+            if (name == "closed_roof_tank") and (width <= 15) and (height <= 15): 
+                name = "narrow_closed_roof_tank"
+            #if a narrow closed roof tank is greater than the closed roof tank threshold than reclassify as closed roof tank
+            if (name == "narrow_closed_roof_tank") and (width > 15) and (height > 15):
+                name = "closed_roof_tank"
+    
+    tree.write(os.path.join(xml_path))
 ########### Extract information from tile_names_tile urls numpy arrays ##########
 def add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls):
     #get a list of the formated tile names

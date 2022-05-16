@@ -32,10 +32,10 @@ def get_args_parse():
 def main(args):  
     #update the location of the images in the tracker .csv + .npy if it already exists
     if os.path.exists(args.tracker_file_path):
-        verification_set = os.path.join(args.home_directory, "verification_set" + args.set_number, "unverified_images")
-        tile_img_annotation_annotator = ap.update_path(verification_set, args.tracker_file_path)
+        unverified_images = os.path.join(args.home_directory, "unverified_images", "student_reviewed_unverified_images_set" + args.set_number)
+        tile_img_annotation_annotator = ap.update_path(unverified_images, args.tracker_file_path)
       
-    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory,args.verifiers, args.annotator_allocation, args.set_number)
+    folder_annotator_list, verification_dir = ap.verification_folders(args.home_directory, args.verifiers, args.annotator_allocation, args.set_number)
     tile_img_annotation_annotator = ap.seperate_images_for_verification_update_tracking(folder_annotator_list, verification_dir, 
                                                                                         args.set_number, tile_img_annotation_annotator)
     
