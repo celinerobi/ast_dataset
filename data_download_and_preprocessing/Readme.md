@@ -47,13 +47,6 @@ python labelwork_distribution_dcc.py --number_of_tiles 4 --annotation_directory 
 
 ### Naming Convention:
 #### Tile Naming Convention:
-All tiles' names include information: state_resolution_year_quadrangle_filename
-**State:**
-Two-letter state code (eg. NC means North Carolina). 
-**Resolution:**
-String specification of image resolution, which has varied throughout NAIP’s history. Depending on year and state, this may be “050cm”, “060cm”, or “100cm”. (“060cm” in this dataset).
-**Year:**
-Four-digit year. Images are collected in each state every 3-5 years, with any given year containing some (but not all) states. For example, Alabama has data in 2011 and 2013, but not in 2012, while California has data in 2012, but not 2011 or 2013. Esri provides information about NAIP coverage in their interactive NAIP annual coverage map. In this dataset, tiles are acquired in 2018 or 2019. 
 **Quadrangle:** 
 USGS quadrangle identifier, specifying a 7.5 minute x 7.5 minute area.
 The filename component of the path (m_3008601_ne_16_1_20150804 in this example) is preserved from USDA’s original archive to allow consistent referencing across different copies of NAIP. Minor variation in file naming exists, but filenames are generally formatted as: 
@@ -78,12 +71,9 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student12_Cleave --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student23_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Nayak --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verification_set4 
 
-python seperate_positive_negative_images.py  --annotation_directory student_reviewed_images9_Feinberg --parent_directory C:\chip_allocation
-Z:\labelwork\
 
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
