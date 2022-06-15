@@ -408,9 +408,11 @@ def transform_point_utm_to_wgs84(utm_proj, utm_xcoord, utm_ycoord):
 ###################################################################################################################
 ##########################   Create dataframe of Image and Tile Characteristics  ##################################
 ###################################################################################################################   
-def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verified_positive_jpgs):
+def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_name_tile_url):#, verified_positive_jpgs):
     tile_names_by_tile = []
     tile_paths_by_tile = []
+    tile_urls_by_tile = []
+
     tile_heights = []
     tile_widths = []
     tile_depths = []
@@ -428,6 +430,8 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
     chip_names = []
     tile_names_by_chip = []
     tile_paths_by_chip = []
+    tile_urls_by_chip = []
+
     minx_pixel = []
     miny_pixel = []
     maxx_pixel = []
@@ -452,15 +456,17 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
         positive_xmls = os.listdir(positive_xml_dir)
         #read in tile
         tile_path = os.path.join(tiles_dir, tile_name + ".tif")
-        #tile name/paths by tile
+        #obtain tile url
+        tile_url = [string for string in tile_name_tile_url[:,1] if tile_name in string][0]
+        #tile name/path/urls by tile
         tile_names_by_tile.append(tile_name)
         tile_paths_by_tile.append(tile_path)
+        tile_urls_by_tile.append(tile_url)
         #determine the utm coords for each tile 
         utmx, utmy, tile_band, tile_height, tile_width = tile_dimensions_and_utm_coords(tile_path)
         tile_heights.append(tile_height)
         tile_widths.append(tile_width)
         tile_depths.append(tile_band)
-
         min_utmx_tile.append(utmx[0]) #NW_coordinates
         min_utmy_tile.append(utmy[0])  #NW_coordinates
         max_utmx_tile.append(utmx[-1]) #SE_coordinates
@@ -473,6 +479,8 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
         min_lat_tile.append(minlat) #NW_coordinates
         max_lon_tile.append(maxlon) #SE_coordinates
         max_lat_tile.append(maxlat) #SE_coordinates
+        
+
         for positive_image in positive_images: #iterate over each image affiliated with a given tile
             #tile and chip names
             chip_name = os.path.splitext(positive_image)[0]
@@ -480,6 +488,8 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
             tile_names_by_chip.append(tile_name)
             #path
             tile_paths_by_chip.append(tile_path)
+            tile_urls_by_chip.append(tile_url)
+
             image_paths.append(os.path.join(positive_image_dir, positive_image))
             xml_paths.append(os.path.join(positive_xml_dir, chip_name +".xml"))
             #row/col indicies 
@@ -508,13 +518,13 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, verif
             min_lat_chip.append(min_lat) #NW (max: Top Left) # used for numpy crop
             max_lon_chip.append(max_lon) #SE (min: Bottom right) 
             max_lat_chip.append(max_lat) #SE (min: Bottom right)
-    tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, 'tile_heights': tile_heights, 
-                        'tile_widths': tile_widths, 'tile_depths': tile_depths,'min_utmx_tile': min_utmx_tile, 'min_utmy_tile': min_utmy_tile, 
+    tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_url': tile_urls_by_tile, 'tile_path': tile_paths_by_tile, 
+                        'tile_heights': tile_heights, 'tile_widths': tile_widths, 'tile_bands': tile_depths, 'min_utmx_tile': min_utmx_tile, 'min_utmy_tile': min_utmy_tile, 
                         'max_utmx_tile': max_utmx_tile, 'max_utmy_tile': max_utmy_tile, 'utm_projection': utm_projection,
                         'min_lon_tile': min_lon_tile,'min_lat_tile': min_lat_tile,'max_lon_tile': max_lon_tile,'max_lat_tile': max_lat_tile})
 
     image_characteristics = pd.DataFrame(data={'chip_name': chip_names, 'image_path': image_paths, 'xml_path': xml_paths,'tile_name': tile_names_by_chip, 
-                            'tile_path': tile_paths_by_chip, 'row_indicies': row_indicies, 'col_indicies': col_indicies,
+                            'tile_url': tile_urls_by_chip, 'tile_path': tile_paths_by_chip, 'row_indicies': row_indicies, 'col_indicies': col_indicies,
                             'minx_pixel': minx_pixel, 'miny_pixel': miny_pixel, 'maxx_pixel': maxx_pixel,'maxy_pixel': maxy_pixel,
                             'min_lon_chip': min_lon_chip,'min_lat_chip': min_lat_chip,'max_lon_chip': max_lon_chip, 'max_lat_chip': max_lat_chip})
     tile_characteristics.to_csv("tile_characteristics.csv")
@@ -1043,8 +1053,24 @@ def identify_state_name_for_each_state(states_gpds_path, gdf):
     state_list = np.array(state_list)
     gdf["state"] = state_list
     return(gdf)
+######################################################################################################################################################
+######################################                      Write Tile Level Annotations            ##################################################
+######################################################################################################################################################
 
+def write_gdf(gdf, output_filepath, output_filename = 'tile_level_annotations'):
+    gdf.crs = "EPSG:4326" #assign projection
 
+    #save geodatabase as json
+    with open(os.path.join(output_filepath, output_filename+".json"), 'w') as file:
+        file.write(gdf.to_json()) 
+
+    ##save geodatabase as geojson 
+    with open(os.path.join(output_filepath, output_filename+".geojson"), "w") as file:
+        file.write(gdf.to_json()) 
+
+    ##save geodatabase as shapefile
+    gdf_shapefile = gdf.drop(columns=["chip_name","polygon_vertices_pixels","polygon_vertices_lon_lat"])
+    gdf_shapefile.to_file(os.path.join(output_filepath,output_filename+".shp"))
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
