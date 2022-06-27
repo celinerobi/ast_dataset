@@ -44,6 +44,13 @@ import PIL
 #print('PIL',PIL.__version__)
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
+#Parsing/Modifying XML
+from lxml.etree import Element,SubElement,tostring
+import xml.dom.minidom
+from xml.dom.minidom import parseString
+import xml.etree.ElementTree as et
+from xml.dom import minidom
+import xml
 """
 Azure Functions
 """
@@ -574,7 +581,6 @@ class annotator:
                        'spherical tank':"spherical_tank",
                        "undefined_object": "undefined_object",
                        "silo": "undefined_object" }
-
         #calculate the number of images
         number_of_images = len(self.chips_xml_list)
         

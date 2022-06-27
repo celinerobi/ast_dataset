@@ -71,8 +71,7 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
                                              --parent_directory \dir_containing_chips_and_annotations
                                              
 Example:
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student14_Cleave --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
-unverified_images\student_reviewed_unverified_images_set6\Desban\unverified_images_not_reviewed_by_student3_Desbans
+python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student30_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Desbans --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images\student_reviewed_unverified_images_set6\Desban
 ## 3. Record Annotator
@@ -110,7 +109,7 @@ python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator
 Example:
 python correct_incon_labels.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
 
-python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset
+python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset
 ### 7. Identify Missing Annotations 
 path_to_images = "D:/Unverified_images/student_reviewed_unverified_images"
 sub_directories = ap.list_of_sub_directories(path_to_images)
@@ -125,7 +124,8 @@ python data_clean_descrip.py  --parent_directory \dir_containing_all_annotator_f
                               --tiles_labeled path_to_numpy_array
                                              
 Example for complete dataset:
-python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset --annotation_directory chips_positive_corrected_xml --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
+python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset --annotation_directory chips_positive_corrected_xml 
+--tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
 
 ### Issue with missing rows
 chip_naming_convention_correction.ipynb

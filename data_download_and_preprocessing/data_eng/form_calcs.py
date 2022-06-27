@@ -55,7 +55,7 @@ def add_chips_to_chip_folders(rechipped_image_path, tile_name):
     os.makedirs(chips_path, exist_ok=True)
     
     item_dim = int(512)
-    tile = cv2.imread(os.path.join(tiles_complete_dataset_path, tile_name + ".tif")) 
+    tile = cv2.imread(os.path.join(tiles_complete_dataset_path, tile_name + ".tif"),cv2.IMREAD_UNCHANGED)
     tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
     row_index = math.ceil(tile_height/512) 
     col_index = math.ceil(tile_width/512)
@@ -64,7 +64,7 @@ def add_chips_to_chip_folders(rechipped_image_path, tile_name):
     count = 1            
     for y in range(0, row_index): #rows
         for x in range(0, col_index): #cols
-            chip_img = fc.tile_to_chip_array(tile, x, y, item_dim)
+            chip_img = tile_to_chip_array(tile, x, y, item_dim)
             #specify the chip names
             chip_name_correct_chip_name = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + '.jpg' # The index is a six-digit number like '000023'.
             if not os.path.exists(os.path.join(chips_path, chip_name_correct_chip_name)):
@@ -229,21 +229,19 @@ def tile_to_chip_array(tile, x, y, item_dim):
     #add in back space if it is the edge of an image
     if (chip_img.shape[0] != 512) & (chip_img.shape[1] != 512): #width
         #print("Incorrect Width")
-        chip = np.zeros((512,512,3))
+        chip = np.zeros((512,512,4))
         chip[0:chip_img.shape[0], 0:chip_img.shape[1]] = chip_img
         chip_img = chip
     if chip_img.shape[0] != 512:  #Height
         black_height = 512  - chip_img.shape[0] #Height
         black_width = 512 #- chip_img.shape[1] #width
-        black_img = np.zeros((black_height,black_width,3), np.uint8)
+        black_img = np.zeros((black_height,black_width,4), np.uint8)
         chip_img = np.concatenate([chip_img, black_img])
-
     if chip_img.shape[1] != 512: #width
         black_height = 512 #- chip_img.shape[0] #Height
         black_width = 512 - chip_img.shape[1] #width
-        black_img = np.zeros((black_height,black_width,3), np.uint8)
+        black_img = np.zeros((black_height,black_width,4), np.uint8)
         chip_img = np.concatenate([chip_img, black_img],1)
-    
     return(chip_img)
 
 
@@ -1090,7 +1088,7 @@ def incorrectly_chipped_image_and_correctly_chipped_names(incorrectly_chipped_im
     chip_name_correct_chip_names(np array): the name of the images following the previous format for images that contain relevant data
     """
     item_dim = int(512)
-    tile = cv2.imread(os.path.join(tiles_complete_dataset_path, tile_name + ".tif")) 
+    tile = cv2.imread(os.path.join(tiles_complete_dataset_path, tile_name + ".tif"), cv2.IMREAD_UNCHANGED) 
     tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
     row_index = math.ceil(tile_height/512) 
     col_index = math.ceil(tile_width/512)
@@ -1103,7 +1101,7 @@ def incorrectly_chipped_image_and_correctly_chipped_names(incorrectly_chipped_im
 
     count = 1            
     for y in range(0, row_index): #rows
-        for x in range(0, row_index): #cols
+        for x in range(0, col_index): #cols
             chip_img = tile_to_chip_array(tile, x, y, item_dim)
 
             #specify the chip names
@@ -1304,7 +1302,7 @@ def identify_correct_images(tile_dir, tiles_in_directory,
         
         #get tile shape
         item_dim = int(512)          
-        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile = cv2.imread(os.path.join(tile_dir, tile_name),cv2.IMREAD_UNCHANGED) 
         tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
         row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
         col_index = math.ceil(tile_width/512)
@@ -1369,7 +1367,7 @@ def identify_incorrect_images(tile_dir, tiles_in_directory,
         
         #get tile shape
         item_dim = int(512)          
-        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile = cv2.imread(os.path.join(tile_dir, tile_name),cv2.IMREAD_UNCHANGED) 
         tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
         row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
         col_index = math.ceil(tile_width/512)
@@ -1430,7 +1428,7 @@ def identify_incorrect_images_simultaneous(tile_dir, tiles_in_directory, images_
         
         #get tile shape
         item_dim = int(512)          
-        tile = cv2.imread(os.path.join(tile_dir, tile_name)) 
+        tile = cv2.imread(os.path.join(tile_dir, tile_name),cv2.IMREAD_UNCHANGED) 
         tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
         row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
         col_index = math.ceil(tile_width/512)
@@ -1449,7 +1447,7 @@ def identify_incorrect_images_simultaneous(tile_dir, tiles_in_directory, images_
                     for labeled_chip_path in labeled_chip_paths: #there may be duplicate images corresponding to the same standard tile name (nj and ny overlap)
                     #obtain a numpy array of the image in the directory of interest
                         index, = np.where(images_path == labeled_chip_path)
-                        labeled_chip_array = cv2.imread(os.path.join(images_path[index[0]])) #open image
+                        labeled_chip_array = cv2.imread(os.path.join(images_path[index[0]]),cv2.IMREAD_UNCHANGED) #open image
 
                         ##https://pyimagesearch.com/2017/06/19/image-difference-with-opencv-and-python/
                         #https://pyimagesearch.com/2014/09/15/python-compare-two-images/
@@ -1690,7 +1688,7 @@ def positive_images_to_array(images_dir_path):
     image_array = np.zeros((len(images),512,512, 3), dtype='uint8')
     image_directory = np.array([images_dir_path] *len(images))
     for num in range(len(images)):    
-        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
+        image = cv2.imread(os.path.join(images_dir_path, images[num]),cv2.IMREAD_UNCHANGED) #open image
         image_array[num,:,:,:] = image
         
     return(images, image_array, image_directory)
@@ -1702,7 +1700,7 @@ def positive_images_to_array_rgb(images_dir_path):
     imgsb = np.zeros((len(images),512,512), dtype='uint8')
     
     for num in range(len(images)):    
-        image = cv2.imread(os.path.join(images_dir_path, images[num])) #open image
+        image = cv2.imread(os.path.join(images_dir_path, images[num]),cv2.IMREAD_UNCHANGED) #open image
         imgsr[num,:,:] = image[:,:,0]
         imgsg[num,:,:] = image[:,:,1]
         imgsb[num,:,:] = image[:,:2]
@@ -1727,7 +1725,7 @@ def positive_images_to_array_correctly_labeled(images_dir_path, incorrect_labele
     correctly_labeled_image_array = np.zeros((len(correctly_labeled_images),512,512, 3), dtype='uint8') #image contents 
     correctly_labeled_image_directory = np.array([images_dir_path] * len(correctly_labeled_images)) #image directory 
     for num in range(len(correctly_labeled_images)):    
-        correctly_labeled_image = cv2.imread(os.path.join(images_dir_path, correctly_labeled_images[num])) #open image
+        correctly_labeled_image = cv2.imread(os.path.join(images_dir_path, correctly_labeled_images[num]),cv2.IMREAD_UNCHANGED) #open image
         correctly_labeled_image_array[num,:,:,:] = correctly_labeled_image
         
     return(correctly_labeled_images, correctly_labeled_image_array, correctly_labeled_image_directory)      
@@ -1755,7 +1753,7 @@ def correct_images_from_chipped_tile_for_positive_images(tile_dir, tile_names, g
         item_dim = int(512)   
         tile_path = os.path.join(tile_dir, tile_name + ".tif")
         print(tile_path)
-        tile = cv2.imread(tile_path) 
+        tile = cv2.imread(tile_path,cv2.IMREAD_UNCHANGED) 
         tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile #determine tile dimensions
         row_index = math.ceil(tile_height/512) #divide the tile into 512 by 512 chips (rounding up)
         col_index = math.ceil(tile_width/512)
@@ -1818,10 +1816,10 @@ def identify_identical_images(images_dir_path, blocks, block):#o_images = None,)
 
     for o in tqdm.tqdm(range(len(o_images))):
         o_image = o_images[o]
-        original = cv2.imread(os.path.join(images_dir_path, o_image)) #open image
+        original = cv2.imread(os.path.join(images_dir_path, o_image),cv2.IMREAD_UNCHANGED) #open image
 
         for d_image in d_images:
-            duplicate = cv2.imread(os.path.join(images_dir_path, d_image)) #open image
+            duplicate = cv2.imread(os.path.join(images_dir_path, d_image),cv2.IMREAD_UNCHANGED) #open image
 
             #check for similar characteristics
             if original.shape == duplicate.shape:
