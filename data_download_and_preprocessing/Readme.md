@@ -102,7 +102,7 @@ python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotat
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
-python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\verified\\verified_sets --original True
+python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\temp\rechip --original True
 ## 6. Standardize Object Labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              
@@ -110,6 +110,8 @@ Example:
 python correct_incon_labels.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
 
 python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset
+
+Z:\temp\rechip
 ### 7. Identify Missing Annotations 
 path_to_images = "D:/Unverified_images/student_reviewed_unverified_images"
 sub_directories = ap.list_of_sub_directories(path_to_images)

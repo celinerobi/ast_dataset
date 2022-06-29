@@ -406,10 +406,10 @@ def transform_point_utm_to_wgs84(utm_proj, utm_xcoord, utm_ycoord):
 ###################################################################################################################
 ##########################   Create dataframe of Image and Tile Characteristics  ##################################
 ###################################################################################################################   
-def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_name_tile_url):#, verified_positive_jpgs):
+def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, tile_name_tile_url, verified_positive_jpgs):
     tile_names_by_tile = []
     tile_paths_by_tile = []
-    tile_urls_by_tile = []
+    #tile_urls_by_tile = []
 
     tile_heights = []
     tile_widths = []
@@ -418,7 +418,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
     min_utmy_tile = []  #NW_coordinates
     max_utmx_tile = [] #SE_coordinates
     max_utmy_tile = [] #SE_coordinates
-    utm_projection = [] 
+    utm_projection_tile = [] 
 
     min_lon_tile = [] #NW_coordinates
     min_lat_tile = []  #NW_coordinates
@@ -428,7 +428,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
     chip_names = []
     tile_names_by_chip = []
     tile_paths_by_chip = []
-    tile_urls_by_chip = []
+    #tile_urls_by_chip = []
 
     minx_pixel = []
     miny_pixel = []
@@ -438,6 +438,12 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
     min_lat_chip = [] #NW_coordinates
     max_lon_chip = [] #SE_coordinates
     max_lat_chip = [] #SE_coordinates
+    min_utmx_chip = [] #NW_coordinates
+    min_utmy_chip = [] #NW_coordinates
+    max_utmx_chip = [] #SE_coordinates
+    max_utmy_chip = [] #SE_coordinates
+    utm_projection_chip = [] 
+
     row_indicies = []
     col_indicies = []
     image_paths  = []
@@ -455,11 +461,11 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
         #read in tile
         tile_path = os.path.join(tiles_dir, tile_name + ".tif")
         #obtain tile url
-        tile_url = [string for string in tile_name_tile_url[:,1] if tile_name in string][0]
         #tile name/path/urls by tile
         tile_names_by_tile.append(tile_name)
         tile_paths_by_tile.append(tile_path)
-        tile_urls_by_tile.append(tile_url)
+        #tile_url = [string for string in tile_name_tile_url[:,1] if tile_name in string][0]
+        #tile_urls_by_tile.append(tile_url)
         #determine the utm coords for each tile 
         utmx, utmy, tile_band, tile_height, tile_width = tile_dimensions_and_utm_coords(tile_path)
         tile_heights.append(tile_height)
@@ -470,7 +476,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
         max_utmx_tile.append(utmx[-1]) #SE_coordinates
         max_utmy_tile.append(utmy[-1]) #SE_coordinates
         utm_proj = get_utm_proj(tile_path)
-        utm_projection.append(utm_proj)
+        utm_projection_tile.append(utm_proj)
         minlon, minlat = transform_point_utm_to_wgs84(utm_proj, utmx[0], utmy[0])
         maxlon, maxlat = transform_point_utm_to_wgs84(utm_proj, utmx[-1], utmy[-1]) 
         min_lon_tile.append(minlon) #NW_coordinates
@@ -486,7 +492,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
             tile_names_by_chip.append(tile_name)
             #path
             tile_paths_by_chip.append(tile_path)
-            tile_urls_by_chip.append(tile_url)
+            #tile_urls_by_chip.append(tile_url)
 
             image_paths.append(os.path.join(positive_image_dir, positive_image))
             xml_paths.append(os.path.join(positive_xml_dir, chip_name +".xml"))
@@ -496,34 +502,40 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir, tile_nam
             x = int(x)
             row_indicies.append(y)
             col_indicies.append(x)
-            #get the pixel coordinates (indexing starting at 1)
-            minx = x*item_dim + 1
-            miny = y*item_dim + 1
-            maxx = (x+1)*item_dim 
-            maxy = (y+1)*item_dim
+            #get the pixel coordinates (indexing starting at 0)
+            minx = x*item_dim 
+            miny = y*item_dim 
+            maxx = (x+1)*item_dim - 1
+            maxy = (y+1)*item_dim - 1
             if maxx > tile_width:
-                maxx = tile_width
+                maxx = tile_width - 1
             if maxy > tile_height:
-                maxy = tile_height
+                maxy = tile_height - 1
             minx_pixel.append(minx) #NW (max: Top Left) # used for numpy crop
             miny_pixel.append(miny) #NW (max: Top Left) # used for numpy crop
             maxx_pixel.append(maxx) #SE (min: Bottom right) 
             maxy_pixel.append(maxy) #SE (min: Bottom right) 
             #determine the lat/lon
-            min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, utmx[minx-1], utmy[miny-1]) #subtract 1 to get from PASCAL VOC pixel coordinates to python index
-            max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, utmx[maxx-1], utmy[maxy-1]) 
+            min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, utmx[minx], utmy[miny])
+            max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, utmx[maxx], utmy[maxy]) 
+            min_utmx_chip.append(utmx[minx]) #NW_coordinates
+            min_utmy_chip.append(utmy[miny]) #NW_coordinates
+            max_utmx_chip.append(utmx[maxx]) #SE_coordinates
+            max_utmy_chip.append(utmy[maxy]) #SE_coordinates
+            utm_projection_chip.append(utm_proj)
             min_lon_chip.append(min_lon) #NW (max: Top Left) # used for numpy crop
             min_lat_chip.append(min_lat) #NW (max: Top Left) # used for numpy crop
             max_lon_chip.append(max_lon) #SE (min: Bottom right) 
             max_lat_chip.append(max_lat) #SE (min: Bottom right)
-    tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_url': tile_urls_by_tile, 'tile_path': tile_paths_by_tile, 
-                        'tile_heights': tile_heights, 'tile_widths': tile_widths, 'tile_bands': tile_depths, 'min_utmx_tile': min_utmx_tile, 'min_utmy_tile': min_utmy_tile, 
-                        'max_utmx_tile': max_utmx_tile, 'max_utmy_tile': max_utmy_tile, 'utm_projection': utm_projection,
+    tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, #'tile_url': tile_urls_by_tile, 
+                        'tile_heights': tile_heights, 'tile_widths': tile_widths, 'tile_bands': tile_depths, 'min_utmx': min_utmx_tile, 'min_utmy': min_utmy_tile, 
+                        'max_utmx': max_utmx_tile, 'max_utmy': max_utmy_tile, 'utm_projection': utm_projection_tile,
                         'min_lon_tile': min_lon_tile,'min_lat_tile': min_lat_tile,'max_lon_tile': max_lon_tile,'max_lat_tile': max_lat_tile})
 
     image_characteristics = pd.DataFrame(data={'chip_name': chip_names, 'image_path': image_paths, 'xml_path': xml_paths,'tile_name': tile_names_by_chip, 
-                            'tile_url': tile_urls_by_chip, 'tile_path': tile_paths_by_chip, 'row_indicies': row_indicies, 'col_indicies': col_indicies,
-                            'minx_pixel': minx_pixel, 'miny_pixel': miny_pixel, 'maxx_pixel': maxx_pixel,'maxy_pixel': maxy_pixel,
+                            'row_indicies': row_indicies, 'col_indicies': col_indicies,'tile_path': tile_paths_by_chip, #'tile_url': tile_urls_by_chip, 
+                            'minx_pixel': minx_pixel, 'miny_pixel': miny_pixel, 'maxx_pixel': maxx_pixel,'maxy_pixel': maxy_pixel, 'utm_projection': utm_projection_chip,
+                            'min_utmx': min_utmx_chip, 'min_utmy': min_utmy_chip, 'max_utmx': max_utmx_chip, 'max_utmy': max_utmy_chip, 
                             'min_lon_chip': min_lon_chip,'min_lat_chip': min_lat_chip,'max_lon_chip': max_lon_chip, 'max_lat_chip': max_lat_chip})
     tile_characteristics.to_csv("tile_characteristics.csv")
     image_characteristics.to_csv("image_characteristics.csv")
@@ -866,12 +878,12 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
         tile_characteristics_subset = tile_characteristics[tile_characteristics.loc[:,"tile_name"] == tile_name]
         tile_width = tile_characteristics_subset["tile_widths"].values[0]
         tile_height = tile_characteristics_subset["tile_heights"].values[0]
-        tile_utmx_array = np.linspace(tile_characteristics_subset["min_utmx_tile"].values[0], 
-                                      tile_characteristics_subset["max_utmx_tile"].values[0],
+        tile_utmx_array = np.linspace(tile_characteristics_subset["min_utmx"].values[0], 
+                                      tile_characteristics_subset["max_utmx"].values[0],
                                       tile_width)
         
-        tile_utmy_array = np.linspace(tile_characteristics_subset["min_utmy_tile"].values[0], 
-                                      tile_characteristics_subset["max_utmy_tile"].values[0],
+        tile_utmy_array = np.linspace(tile_characteristics_subset["min_utmy"].values[0], 
+                                      tile_characteristics_subset["max_utmy"].values[0],
                                       tile_height)
         utm_proj = tile_characteristics_subset["utm_projection"].values[0]
         #load each xml
@@ -907,15 +919,19 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             object_class.append(char[1])
             #state whether bbox were merged
             merged_bbox.append(merged_bool)
-            #pixel coordiantes 
-            minx_polygon_pixels.append(bbox[0])
-            miny_polygon_pixels.append(bbox[1])
-            maxx_polygon_pixels.append(bbox[2])
-            maxy_polygon_pixels.append(bbox[3])
-            polygon_vertices_pixels.append([(bbox[0],bbox[1]), (bbox[0],bbox[3]), (bbox[2],bbox[3]), (bbox[2],bbox[1])])
+            #pixel coordiantes, 0 indexed
+            minx = bbox[0] - 1
+            miny = bbox[1] - 1
+            maxx = bbox[2] - 1
+            maxy = bbox[3] - 1 
+            minx_polygon_pixels.append(minx)
+            miny_polygon_pixels.append(miny)
+            maxx_polygon_pixels.append(maxx)
+            maxy_polygon_pixels.append(maxy)
+            polygon_vertices_pixels.append([(minx,miny), (minx,maxy), (maxx,maxy), (maxx,miny)])
             #geospatial data          
-            min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[bbox[0]-1], tile_utmy_array[bbox[1]-1])
-            max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[bbox[2]-1], tile_utmy_array[bbox[3]-1])
+            min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[minx], tile_utmy_array[miny])
+            max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[maxx], tile_utmy_array[maxy])
             nw_corner_polygon_lon.append(min_lon)
             nw_corner_polygon_lat.append(min_lat)
             se_corner_polygon_lon.append(max_lon)
@@ -1069,6 +1085,52 @@ def write_gdf(gdf, output_filepath, output_filename = 'tile_level_annotations'):
     ##save geodatabase as shapefile
     gdf_shapefile = gdf.drop(columns=["chip_name","polygon_vertices_pixels","polygon_vertices_lon_lat"])
     gdf_shapefile.to_file(os.path.join(output_filepath,output_filename+".shp"))
+    
+    
+    
+######################################################################################################################################################
+############################################# get png images  ######################################################################################
+######################################################################################################################################################
+def png4jpg(image_dir, new_image_dir, tiles_dir, item_dim = int(512)):
+    """ Get the png for labeled images 
+    Load tile of interest; Identify labeled images, and save labeled images as png
+    Args:
+    new_image_dir(str): path to folder that will contain the png images
+    image_dir(str): path to folder contain labeled images 
+    tiles_dir(str): path to folder containing tiles
+    """
+    #get list of images 
+    remove_thumbs(image_dir) #remove thumbs db first
+    images = os.listdir(image_dir) 
+    
+    #get list of tile names and list of image names (without extensions
+    image_names = []
+    tile_names = []
+    for image in images: #iterate over annotated images 
+        image_names.append(os.path.splitext(image)[0]) #remove extension
+        tile_names.append(image.rsplit("_",2)[0]) #remove tile
+    tile_names = np.unique(tile_names)
+
+    for tile_name in tile_names: #iterate over and load tiles        
+        images_in_tile = [string for string in image_names if tile_name in string]  
+
+        tile = cv2.imread(os.path.join(tiles_dir, tile_name + ".tif"), cv2.IMREAD_UNCHANGED) #read in tile
+        tile_height,  tile_width,  tile_channels = tile.shape #the size of the tile 
+        row_index = math.ceil(tile_height/item_dim) 
+        col_index = math.ceil(tile_width/item_dim)
+    
+        for image_name in images_in_tile: #iterate over images associated with each tile
+            y, x = image_name.split("_")[-2:] #y=row;x=col
+            y = int(y)
+            x = int(x)
+            
+            #save image
+            img = tile_to_chip_array(tile, x, y, item_dim) #subset the chip from the tile
+            image_name_ext = image_name + '.png' # row_cols #specify the chip names
+            image_path = os.path.join(new_image_dir, image_name_ext)
+            if not os.path.exists(image_path):
+                cv2.imwrite(image_path, img) #save images
+                
 ######################################################################################################################################################
 ###################################### Identify unlabeled images (cut off by previous chipping code ##################################################
 ######################################################################################################################################################
