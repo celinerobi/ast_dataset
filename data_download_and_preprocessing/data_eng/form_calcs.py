@@ -766,8 +766,8 @@ def merge_boxes(bbox1, bbox2):
 def calc_sim(bbox1, bbox2, dist_limit):
     """Determine the similarity of distances between bboxes to determine whether bboxes should be merged 
     Arg:
-    bbox1(list): a list of the (ymin, xmin, ymax, xmax) coordinates for box 1 
-    bbox2(list): a list of the (ymin, xmin, ymax, xmax) coordinates for box 2
+    bbox1(list): a list of the (xmin, ymin, xmax, ymax) coordinates for box 1 
+    bbox2(list): a list of the (xmin, ymin, xmax, ymax) coordinates for box 2
     dist_list(int): the maximum threshold (pixel distance) to merge bounding boxes
     Returns:
     (bool): to indicate whether the bboxes should be merged 
@@ -835,6 +835,13 @@ def merge_algo(characteristics, bboxes, dist_limit):
     return merge_bools, characteristics, bboxes
 
 def calculate_diameter(bbox, resolution = 0.6):
+    """ Calculate the diameter of a given bounding bbox for imagery of a given resolution
+    Arg:
+    bbox(list): a list of the (xmin, ymin, xmax, ymax) coordinates for box 
+    resolution(float): the (gsd) resolution of the imagery
+    Returns:
+    (diameter): the diameter of the bbox of interest
+    """
     obj_xmin, obj_ymin, obj_xmax, obj_ymax = bbox
     obj_width = obj_xmax - obj_xmin
     obj_height = obj_ymax - obj_ymin
@@ -863,7 +870,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
     se_corner_polygon_lat = []
     se_corner_polygon_lon = []
     polygon_vertices_lon_lat = []
-    
+    utm_projection = []
     diameter = []
     for tile_xml in tqdm.tqdm(tiles_xml_list): #iterate over tiles
         #save bboxes and characteristics
@@ -930,6 +937,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             maxy_polygon_pixels.append(maxy)
             polygon_vertices_pixels.append([(minx,miny), (minx,maxy), (maxx,maxy), (maxx,miny)])
             #geospatial data          
+            utm_projection.append(utm_proj)
             min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[minx], tile_utmy_array[miny])
             max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[maxx], tile_utmy_array[maxy])
             nw_corner_polygon_lon.append(min_lon)
@@ -957,6 +965,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             maxy_polygon_pixels.append(bbox[3])
             polygon_vertices_pixels.append([(bbox[0],bbox[1]), (bbox[0],bbox[3]), (bbox[2],bbox[3]), (bbox[2],bbox[1])])
             #geospatial data
+            utm_projection.append(utm_proj)
             min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[bbox[0]-1], tile_utmy_array[bbox[1]-1])
             max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[bbox[2]-1], tile_utmy_array[bbox[3]-1])
             nw_corner_polygon_lon.append(min_lon)
@@ -969,15 +978,14 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             diameter.append(calculate_diameter(bbox))
             
     #create geodatabase
-    d = {'tile_name': tile_names,'chip_name': chip_names, 
+    gdf = gpd.GeoDataFrame({'tile_name': tile_names,'chip_name': chip_names, 
             "minx_polygon_pixels": minx_polygon_pixels, "miny_polygon_pixels": miny_polygon_pixels, #min lon/lat
             "maxx_polygon_pixels": maxx_polygon_pixels, "maxy_polygon_pixels": maxy_polygon_pixels, #max lat
-            "polygon_vertices_pixels": polygon_vertices_pixels, 
+            "polygon_vertices_pixels": polygon_vertices_pixels, "utm_projection": utm_projection,
             "nw_corner_polygon_lat": nw_corner_polygon_lat, "nw_corner_polygon_lon": nw_corner_polygon_lon,#min lon/lat
             "se_corner_polygon_lat": se_corner_polygon_lat, "se_corner_polygon_lon": se_corner_polygon_lon, #min lon/lat
             "polygon_vertices_lon_lat": polygon_vertices_lon_lat,'geometry': geometry, 
-            "object_class": object_class, 'diameter (m)': diameter, 'merged_bbox': merged_bbox}
-    gdf = gpd.GeoDataFrame(d)
+            "object_class": object_class, 'diameter (m)': diameter, 'merged_bbox': merged_bbox})
     return(gdf)  
 
 11
@@ -1309,7 +1317,11 @@ def img_anno_paths_to_corrected_names_for_labeled_images_and_remaining_images(im
         tiles = []
         for image in image_paths:
             image_name = os.path.splitext(os.path.basename(image))[0]
-            tile_name = image_name.split("_",4)[-1].rsplit("_",1)[0]
+            if image_name.count("_") > 9:
+                tile_name = image_name.split("_",4)[-1].rsplit("_",1)[0] #state included in image name
+            else:
+                tile_name = image_name.rsplit("_",2)[0] #tile name formated image name
+            
             tiles.append(tile_name)
         tiles = np.unique(tiles)
 
