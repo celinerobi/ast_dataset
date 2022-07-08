@@ -73,7 +73,8 @@ python cred\AST_dataset\data_download_and_preprocessing\seperate_positive_negati
 Example:
 python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student31_Poonacha --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork
 
-python seperate_positive_negative_images.py  --annotation_directory unverified_images_not_reviewed_by_student3_Desbans --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images\student_reviewed_unverified_images_set6\Desban
+python seperate_positive_negative_images.py  --annotation_directory student_reviewed_images17_Sunny --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images\student_reviewed_unverified_images_set7\Sunny
+
 ## 3. Record Annotator
 After the annotators have reviewed their images to fix any small errors, the organizer relocates their images into the *Unverified* folder. This folder is organized by annotator, by annotation set. To record which annotations have been recorded by which annotator in a centralized location, the following script is run. This produces two outputs, a npy array and a csv which indicate the tile, chip, xml, and annotator. 
 
@@ -82,7 +83,7 @@ python track_annotator_draw.py  --parent_directory \dir_containing_all_chips_and
 Example:
 python track_annotator_draw.py --parent_directory C:\chip_allocation
 
-python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images/student_reviewed_unverified_images_set6
+python track_annotator_draw.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\unverified_images/student_reviewed_unverified_images_set7
 
 Troubleshooting:
 ValueError: all the input array dimensions for the concatenation axis must match exactly...
@@ -96,8 +97,8 @@ python verification_and_tracking.py     --tracker_file_path path_to_tracker_nump
                                         --set_number the_set_number
                                         --annotator_allocation annotator1 annotator2
 Example:
-python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Cleave_Robinson_Sunny --annotator_allocation Desbans --set_number 6
- 
+python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotation_annotator.npy  --home_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\ --verifiers Sunny_Cleave_Robinson --annotator_allocation Niculescu --set_number 7
+
 ## 5. Create Complete Dataset
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
