@@ -1,4 +1,4 @@
-get"""
+"""
 Functions to process, format, and conduct calculations on the annotated or verified dataset
 """
 # Standard packages
@@ -840,7 +840,7 @@ def calculate_diameter(bbox, resolution = 0.6):
     bbox(list): a list of the (xmin, ymin, xmax, ymax) coordinates for box 
     resolution(float): the (gsd) resolution of the imagery
     Returns:
-    (diameter): the diameter of the bbox of interestwrite
+    (diameter): the diameter of the bbox of interest
     """
     obj_xmin, obj_ymin, obj_xmax, obj_ymax = bbox
     obj_width = obj_xmax - obj_xmin
