@@ -1595,14 +1595,12 @@ def multi_iterate_over_tile_compare_move_state_year_by_six_digit_index(tile_name
     print(len(state_year_img_paths), len(state_year_xml_paths))
     print(img_count_state_year)
     """
-def get_tile_dir_and_parameters(tile_name, compile_dir, tile_dir_path):
+def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, correct_chip_dir_path):
     ys = []
     xs = []
     six_digit_idxs = []
     
-    compile_tile_dir = make_by_tile_dirs(compile_dir, tile_name)
-    correct_chip_dir = os.path.join(compile_tile_dir, "chips")
-    os.makedirs(correct_chip_dir, exist_ok=True)
+    compile_tile_dir = make_by_tile_dirs(compile_dir_path, tile_name)
 
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     count = 1
@@ -1614,7 +1612,7 @@ def get_tile_dir_and_parameters(tile_name, compile_dir, tile_dir_path):
             #get imgs/xmls where the count matches a la
             #six_digit_idxs.append(str(count).zfill(6))
             six_digit_idx = str(count).zfill(6)
-            cv2.imwrite(os.path.join(correct_chip_dir, tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx+".jpg"), t_2_chip) #save images  
+            cv2.imwrite(os.path.join(correct_chip_dir_path, tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx+".jpg"), t_2_chip) #save images  
             count += 1  
     #return(ys, xs, six_digit_idxs)
 

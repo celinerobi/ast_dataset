@@ -31,13 +31,16 @@ def get_args_parse():
                         help='path to dir to store all correct images.')
     parser.add_argument('--tile_dir_path', type=str, default=None,
                         help='path to all tiles')
+    parser.add_argument('--correct_chip_dir_path', type=str, default=None,
+                        help='path to correctly chipped images')
     #parser.add_argument('--directory', type=bool, default=False,
     #                    help='use original (True), or corrected (False) annotations')
     args = parser.parse_args()
     return args
 
 def main(args):
-    fc.get_tile_dir_and_parameters(args.tile_name, args.compile_dir, args.tile_dir_path)
+    os.makedirs(correct_chip_dir, exist_ok=True)
+    fc.get_tile_dir_and_parameters(args.tile_name, args.compile_dir, args.tile_dir_path, args.correct_chip_dir_path)
     #ys, xs, six_digit_idxs = fc.get_tile_dir_and_parameters(args.tile_name, args.compile_dir, args.tile_dir_path)
     #fc.write_list(ys, os.path.join(args.directory,str(tile_name),"ys.json"))
     #fc.write_list(xs, os.path.join(args.directory,str(tile_name),"xs.json"))
