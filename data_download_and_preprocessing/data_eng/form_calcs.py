@@ -1602,7 +1602,7 @@ def get_tile_dir_and_parameters(tile_name, compile_dir, tile_dir_path):
     
     compile_tile_dir = make_by_tile_dirs(compile_dir, tile_name)
     correct_chip_dir = os.path.join(compile_tile_dir, "chips")
-    os.makedirs(correct_chip_dir, "chips", exist_ok=True)
+    os.makedirs(correct_chip_dir, exist_ok=True)
 
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     count = 1
