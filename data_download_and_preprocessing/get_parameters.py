@@ -39,7 +39,7 @@ def get_args_parse():
     return args
 
 def main(args):
-    os.makedirs(correct_chip_dir, exist_ok=True)
+    os.makedirs(args.correct_chip_dir_path, exist_ok=True)
     fc.get_tile_dir_and_parameters(args.tile_name, args.compile_dir, args.tile_dir_path, args.correct_chip_dir_path)
     #ys, xs, six_digit_idxs = fc.get_tile_dir_and_parameters(args.tile_name, args.compile_dir, args.tile_dir_path)
     #fc.write_list(ys, os.path.join(args.directory,str(tile_name),"ys.json"))

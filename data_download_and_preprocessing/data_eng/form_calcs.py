@@ -1599,10 +1599,10 @@ def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, corr
     ys = []
     xs = []
     six_digit_idxs = []
-    
-    compile_tile_dir = make_by_tile_dirs(compile_dir_path, tile_name)
-
+     
+    compile_tile_dir = make_by_tile_dirs(compile_dir_path, tile_name) #make directory to store positive chips and xmls
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    
     count = 1
     for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
         for x in range(0, row_index): #cols   
