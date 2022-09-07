@@ -22,6 +22,12 @@ import math
 from contextlib import suppress
 from glob import glob
 
+import xml.dom.minidom
+from xml.dom.minidom import parseString
+import xml.etree.ElementTree as et
+from xml.dom import minidom
+import xml
+
 # Less standard, but still pip- or conda-installable
 import pandas as pd
 import numpy as np
@@ -46,11 +52,7 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 #Parsing/Modifying XML
 from lxml.etree import Element,SubElement,tostring
-import xml.dom.minidom
-from xml.dom.minidom import parseString
-import xml.etree.ElementTree as et
-from xml.dom import minidom
-import xml
+
 """
 Azure Functions
 """

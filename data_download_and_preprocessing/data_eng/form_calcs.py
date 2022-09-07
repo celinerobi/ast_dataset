@@ -11,36 +11,39 @@ import math
 import json
 import tqdm
 from glob import glob
+
+import xml.dom.minidom
+from xml.dom.minidom import parseString
+import xml.etree.ElementTree as et
+from xml.dom import minidom
+
+#install standard
 import numpy as np
 import pandas as pd
-
+import cv2
+import matplotlib 
+import matplotlib.pyplot as plt
 import fiona #must be import before geopandas
 import geopandas as gpd
 import rasterio
 import rioxarray
-import re
+import re #pip install regex
 import rtree
 import pyproj
 import shapely
 from shapely.ops import transform
 from shapely.geometry import Polygon, Point, MultiPoint, MultiPolygon, MultiLineString
 
-import cv2
-import matplotlib 
-import matplotlib.pyplot as plt
-
 from skimage.metrics import structural_similarity as compare_ssim
 #import imutils
 #import psutil
+#Parsing/Modifying XML
+from lxml.etree import Element,SubElement,tostring
 
 import data_eng.az_proc as ap
 
-#Parsing/Modifying XML
-from lxml.etree import Element,SubElement,tostring
-import xml.dom.minidom
-from xml.dom.minidom import parseString
-import xml.etree.ElementTree as et
-from xml.dom import minidom
+
+
 
 ## Write files
 def write_list(list_, file_path):
@@ -1436,6 +1439,14 @@ def copy_and_replace_images_xml(img_name, img_path, xml_path, copy_dir):
     new_xml_path = os.path.join(copy_dir, "chips_positive_xml", img_name + ".xml")
     shutil.copy(xml_path, new_xml_path) #destination
 
+def move_and_replace_images_xml(img_name, img_path, xml_path, copy_dir):                  
+    ####    
+    new_img_path = os.path.join(copy_dir, "chips_positive", img_name + ".jpg")
+    shutil.move(img_path, new_img_path)
+        
+    new_xml_path = os.path.join(copy_dir, "chips_positive_xml", img_name + ".xml")
+    shutil.move(xml_path, new_xml_path) #destination
+    
 def compare_images(t_2_chip, labeled_img):  
     gray_t_2_chip = cv2.cvtColor(t_2_chip.astype(np.uint8), cv2.COLOR_BGR2GRAY) # make gray
     gray_labeled_image = cv2.cvtColor(labeled_img.astype(np.uint8), cv2.COLOR_BGR2GRAY) #image that has been chipped from tile
@@ -1446,7 +1457,6 @@ def compare_images(t_2_chip, labeled_img):
     else: #if it is incorrect
         ## move incorrectly named image if it one of the same name has not already been moved
         return(False)
-    
     
 def compare_move_imgs_state_year(x, y, tile_name, count, img_count,
                                  img_in_tile_paths, xml_in_tile_paths, img_in_tile_names, 
@@ -1591,17 +1601,58 @@ def get_tile_dir_and_parameters(tile_name, compile_dir, tile_dir_path):
     six_digit_idxs = []
     
     compile_tile_dir = make_by_tile_dirs(compile_dir, tile_name)
+    correct_chip_dir = os.path.join(compile_tile_dir, "chips")
+    os.makedirs(correct_chip_dir, "chips", exist_ok=True)
+
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     count = 1
     for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
         for x in range(0, row_index): #cols   
-            ys.append(y)
-            xs.append(x)
+            t_2_chip = tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
+            #ys.append(y)
+            #xs.append(x)
             #get imgs/xmls where the count matches a la
-            six_digit_idxs.append(str(count).zfill(6))
+            #six_digit_idxs.append(str(count).zfill(6))
+            six_digit_idx = str(count).zfill(6)
+            cv2.imwrite(os.path.join(correct_chip_dir, tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx+".jpg"), t_2_chip) #save images  
             count += 1  
-    return(ys, xs, six_digit_idxs)
+    #return(ys, xs, six_digit_idxs)
 
+
+def compare_imgs_xmls_x_y_index_dcc(tile_name, correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, compile_dir):
+    #change to moving for dcc
+    correct_img_path.rsplit("-",3) # tile name formated image name
+    correct_img_name = os.path.splitext(os.path.basename(correct_img_path))[0]
+    y, x, six_digit_idx = correct_img_name.rsplit("-",3)[1:4]
+    y = int(y)
+    x = int(x)
+    # all image
+    idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
+    tile_dir = os.path.join(compile_dir, tile_name) #sub folder for each tile 
+    if len(state_year_img_paths) > 0: 
+        #get standard and state_year img_names
+        #standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
+        standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
+        #identify img/xml that have been moved
+        #img_paths_copy = copy.copy(img_paths)
+        #xml_paths_copy = copy.copy(xml_paths)
+        assert len(state_year_img_paths) == len(state_year_xml_paths), "The same number of images and xmls"
+        #identify imgs/xmls that match the chip position
+        for idx in idxs:
+            img_path = state_year_img_paths[idx]
+            xml_path = state_year_xml_paths[idx]
+            print(img_path)
+            print(xml_path)
+
+            if compare_images(cv2.imread(correct_img_path), cv2.imread(img_path)):
+                move_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                #copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                #remove img/xmls that have been moved from list
+                #img_paths_copy.remove(img_path)
+                #xml_paths_copy.remove(xml_path)
+    #return(img_paths_copy, xml_paths_copy)
+    
+    
 ####################################################################################################################
 ########## Identify images where the contents and naming conventions doe not match ##################################
 #####################################################################################################################
