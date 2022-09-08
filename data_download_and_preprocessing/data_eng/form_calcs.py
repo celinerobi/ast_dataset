@@ -1621,7 +1621,7 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
     #change to moving for dcc
     #correct_img_path.rsplit("-",3) # tile name formated image name
     correct_img_name = os.path.splitext(os.path.basename(correct_img_path))[0]
-    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3)[1:4]
+    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3)
     y = int(y)
     x = int(x)
     # all image
