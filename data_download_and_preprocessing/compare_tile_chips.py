@@ -27,14 +27,12 @@ def get_args_parse():
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
     parser.add_argument('--verified_state_year_subfolders_path', type=str, default=None,
                         help='path to dir containing verified data with state year formats.')
-    parser.add_argument('--tile_name', type=str, default=None,
-                        help='tile name.')
     parser.add_argument('--compile_dir', type=str, default=None,
                         help='path to dir to store all correct images.')
     parser.add_argument('--correct_img_path', type=str, default=False,
                         help='path to all tiles')
-    parser.add_argument('--directory', type=str, default=None,
-                        help='use original (True), or corrected (False) annotations')
+    #parser.add_argument('--directory', type=str, default=None,
+    #                    help='use original (True), or corrected (False) annotations')
     
     #parser.add_argument('--y', type=str, default=None,
     #                    help='y idx for a given tile.')
@@ -54,7 +52,7 @@ def main(args):
     #state_year_img_paths = fc.read_list(os.path.join(args.directory,"state_year_img_paths.json"))
     #state_year_xml_paths = fc.read_list(os.path.join(args.directory,"state_year_xml_paths.json"))
     #all_img_six_digit_idx_list = fc.read_list(os.path.join(args.directory,"six_digit_idxs.json"))
-    fc.compare_imgs_xmls_x_y_index_dcc(args.tile_name, args.correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, args.compile_dir)
+    fc.compare_imgs_xmls_x_y_index_dcc(args.correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, args.compile_dir)
     
 if __name__ == '__main__':
     ### Get the arguments 

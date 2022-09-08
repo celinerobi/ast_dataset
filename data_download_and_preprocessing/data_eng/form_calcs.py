@@ -1617,16 +1617,16 @@ def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, corr
     #return(ys, xs, six_digit_idxs)
 
 
-def compare_imgs_xmls_x_y_index_dcc(tile_name, correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, compile_dir):
+def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, compile_dir):
     #change to moving for dcc
-    correct_img_path.rsplit("-",3) # tile name formated image name
+    #correct_img_path.rsplit("-",3) # tile name formated image name
     correct_img_name = os.path.splitext(os.path.basename(correct_img_path))[0]
-    y, x, six_digit_idx = correct_img_name.rsplit("-",3)[1:4]
+    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3)[1:4]
     y = int(y)
     x = int(x)
     # all image
     idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
-    tile_dir = os.path.join(compile_dir, tile_name) #sub folder for each tile 
+    tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
     if len(state_year_img_paths) > 0: 
         #get standard and state_year img_names
         #standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
