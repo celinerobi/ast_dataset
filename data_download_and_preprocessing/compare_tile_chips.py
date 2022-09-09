@@ -29,7 +29,7 @@ def get_args_parse():
                         help='path to dir containing verified data with state year formats.')
     parser.add_argument('--compile_dir', type=str, default=None,
                         help='path to dir to store all correct images.')
-    parser.add_argument('--correct_img_path', type=str, default=False,
+    parser.add_argument('--by_tile_correct_chips_dir', type=str, default=False,
                         help='path to all tiles')
     #parser.add_argument('--directory', type=str, default=None,
     #                    help='use original (True), or corrected (False) annotations')
@@ -52,7 +52,10 @@ def main(args):
     #state_year_img_paths = fc.read_list(os.path.join(args.directory,"state_year_img_paths.json"))
     #state_year_xml_paths = fc.read_list(os.path.join(args.directory,"state_year_xml_paths.json"))
     #all_img_six_digit_idx_list = fc.read_list(os.path.join(args.directory,"six_digit_idxs.json"))
-    fc.compare_imgs_xmls_x_y_index_dcc(args.correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, args.compile_dir)
+    fc.remove_thumbs(args.by_tile_correct_chips_dir)
+    by_tile_correct_chips_paths = glob(args.by_tile_correct_chips_dir + "/*.jpg", recursive = True)
+    for correct_img_path in by_tile_correct_chips_paths:
+        fc.compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, args.compile_dir)
     
 if __name__ == '__main__':
     ### Get the arguments 

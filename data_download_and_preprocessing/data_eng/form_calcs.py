@@ -1639,15 +1639,14 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
         for idx in idxs:
             img_path = state_year_img_paths[idx]
             xml_path = state_year_xml_paths[idx]
-            print(img_path)
-            print(xml_path)
 
-            if compare_images(cv2.imread(correct_img_path), cv2.imread(img_path)):
-                move_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
-                #copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
-                #remove img/xmls that have been moved from list
-                #img_paths_copy.remove(img_path)
-                #xml_paths_copy.remove(xml_path)
+            if os.path.exists(img_path) and os.path.exists(xml_path): #confirm image and xml is still there 
+                if compare_images(cv2.imread(correct_img_path), cv2.imread(img_path)):
+                    move_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                    #copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                    #remove img/xmls that have been moved from list
+                    #img_paths_copy.remove(img_path)
+                    #xml_paths_copy.remove(xml_path)
     #return(img_paths_copy, xml_paths_copy)
     
     
