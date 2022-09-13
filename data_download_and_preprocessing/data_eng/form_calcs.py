@@ -1458,7 +1458,30 @@ def compare_images(t_2_chip, labeled_img):
         ## move incorrectly named image if it one of the same name has not already been moved
         return(False)
     
-def compare_move_imgs_state_year(x, y, tile_name, count, img_count,
+
+    
+def compare_move_imgs_standard(t_2_chip, x, y, tile_name, img_count, img_in_tile_paths, xml_in_tile_paths, img_in_tile_names,
+                               compile_tile_dir, incorrect_dir):
+    img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
+    standard_img_name_wo_ext = [string for string in img_in_tile_names if img_name_wo_ext in string]
+    standard_img_name_wo_ext = list(set(standard_img_name_wo_ext))
+    standard_index, = np.where(np.isin(np.array(img_in_tile_names), standard_img_name_wo_ext))    
+    if len(standard_index) >= 1: 
+        for index in standard_index:
+            img_path = img_in_tile_paths[index]
+            xml_path = xml_in_tile_paths[index]
+            img_name = img_in_tile_names[index]
+            if compare_images(t_2_chip, cv2.imread(img_path)):
+                img_count += 1
+                copy_and_replace_images_xml(img_name, img_path, xml_path, compile_tile_dir) #use standard name and copy to compiled directory
+            #else:
+            #    print(img_name,"\n",img_path)
+            #    copy_and_replace_images_xml(img_name, img_path, xml_path, incorrect_dir) #move to incorrect directory
+    return(img_count)
+        #counter for image pathway
+    
+    
+def compare_move_imgs_state_year(t_2_chip, x, y, tile_name, count, img_count,
                                  img_in_tile_paths, xml_in_tile_paths, img_in_tile_names, 
                                  compile_tile_dir, incorrect_dir):
     standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
@@ -1475,29 +1498,9 @@ def compare_move_imgs_state_year(x, y, tile_name, count, img_count,
             if compare_images(t_2_chip, cv2.imread(img_path)):
                 img_count += 1
                 copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, compile_tile_dir) #use standard name and copy to compiled directory
-            else:
-                print(img_name, "\n",standard_quad_img_name_wo_ext, img_path)
-                copy_and_replace_images_xml(img_name, img_path, xml_path, incorrect_dir) #move to incorrect directory
-    return(img_count)
-        #counter for image pathway
-    
-def compare_move_imgs_standard(x, y, tile_name, img_count, img_in_tile_paths, xml_in_tile_paths, img_in_tile_names,
-                               compile_tile_dir, incorrect_dir):
-    img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
-    standard_img_name_wo_ext = [string for string in img_in_tile_names if img_name_wo_ext in string]
-    standard_img_name_wo_ext = list(set(standard_img_name_wo_ext))
-    standard_index, = np.where(np.isin(np.array(img_in_tile_names), standard_img_name_wo_ext))    
-    if len(standard_index) >= 1: 
-        for index in standard_index:
-            img_path = img_in_tile_paths[index]
-            xml_path = xml_in_tile_paths[index]
-            img_name = img_in_tile_names[index]
-            if compare_images(t_2_chip, cv2.imread(img_path)):
-                img_count += 1
-                copy_and_replace_images_xml(img_name, img_path, xml_path, compile_tile_dir) #use standard name and copy to compiled directory
-            else:
-                print(img_name,"\n",img_path)
-                copy_and_replace_images_xml(img_name, img_path, xml_path, incorrect_dir) #move to incorrect directory
+            #else:
+            #    print(img_name, "\n",standard_quad_img_name_wo_ext, img_path)
+            #    copy_and_replace_images_xml(img_name, img_path, xml_path, incorrect_dir) #move to incorrect directory
     return(img_count)
         #counter for image pathway
     
@@ -1580,8 +1583,8 @@ def multi_iterate_over_tile_compare_move_state_year_by_six_digit_index(tile_name
     print(tile_name)                                                         
     img_count_state_year = 0
     compile_tile_dir = make_by_tile_dirs(compile_by_tile_state_year_dir, tile_name)
-    """
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    
     count = 1
     for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
         for x in range(0, row_index): #cols               
@@ -1589,12 +1592,13 @@ def multi_iterate_over_tile_compare_move_state_year_by_six_digit_index(tile_name
             six_digit_index = str(count).zfill(6)
             indicies, = np.where(np.array(six_digit_index_list) == six_digit_index)
             if len(state_year_img_paths) > 0:
-                img_count_state_year, state_year_img_paths, state_year_xml_paths = compare_move_imgs_state_year_by_six_digit_index(x, y, tile_name, count,                                                                                         img_count_state_year, indicies,state_year_img_paths, state_year_xml_paths, 
-                                                                                    compile_tile_dir)
+                img_count_state_year, state_year_img_paths, state_year_xml_paths = compare_move_imgs_state_year_by_six_digit_index(x, y, tile_name, count,                                                                                                                                                         img_count_state_year, indicies,
+                                                                                                                                  state_year_img_paths, state_year_xml_paths, 
+                                                                                                                                  compile_tile_dir)
             count += 1  
     print(len(state_year_img_paths), len(state_year_xml_paths))
     print(img_count_state_year)
-    """
+    
 def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, correct_chip_dir_path):
     ys = []
     xs = []
@@ -1629,7 +1633,6 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
     tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
     if len(state_year_img_paths) > 0: 
         #get standard and state_year img_names
-        #standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
         standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
         #identify img/xml that have been moved
         #img_paths_copy = copy.copy(img_paths)
@@ -1642,8 +1645,8 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
 
             if os.path.exists(img_path) and os.path.exists(xml_path): #confirm image and xml is still there 
                 if compare_images(cv2.imread(correct_img_path), cv2.imread(img_path)):
-                    move_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
-                    #copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                    #move_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                    copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
                     #remove img/xmls that have been moved from list
                     #img_paths_copy.remove(img_path)
                     #xml_paths_copy.remove(xml_path)
