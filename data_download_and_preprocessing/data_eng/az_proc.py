@@ -53,6 +53,8 @@ Image.MAX_IMAGE_PIXELS = None
 #Parsing/Modifying XML
 from lxml.etree import Element,SubElement,tostring
 
+import data_eng.form_calcs as fc
+
 """
 Azure Functions
 """
@@ -571,6 +573,7 @@ class annotator:
                        "external_floating_roof_tank": "external_floating_roof_tank",
                        "external floating roof tank": "external_floating_roof_tank",
                        'external_floating_roof_tank ': "external_floating_roof_tank",
+                       'external_closed_roof_tank': "external_floating_roof_tank",
                        "water_treatment_tank": "sedimentation_tank",
                        'water_treatment_tank ': "sedimentation_tank",
                        "water_treatment_plant": "sedimentation_tank",
@@ -605,7 +608,7 @@ class annotator:
             tree.write(os.path.join(self.chips_positive_corrected_xml_dir, xml_file))       
             
             
-    def move_images_annotations_to_complete_dataset(self, include_tiles = False, original = True):
+    def move_images_annotations_to_complete_dataset(self, complete_dir_path, include_tiles = False, original = True):
         """seperate out all of the positive chips, annotations, and conditionally tiles from one directory into a new folder.
         Args:
             file_loc (str): The file location of the spreadsheet
@@ -618,9 +621,9 @@ class annotator:
             len(images): number of images
         """
         #make a complete dataset
-        self.complete_dataset_xml_dir = os.path.join(self.dcc_directory,"complete_dataset",'chips_positive_xml') 
+        self.complete_dataset_xml_dir = os.path.join(complete_dir_path, "complete_dataset",'chips_positive_xml') 
         os.makedirs(self.complete_dataset_xml_dir, exist_ok=True) #directory to hold entire dataset annotations
-        self.complete_dataset_chips_dir = os.path.join(self.dcc_directory,"complete_dataset","chips_positive") 
+        self.complete_dataset_chips_dir = os.path.join(complete_dir_path, "complete_dataset","chips_positive") 
         os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
        
         #Move annotations
@@ -635,6 +638,9 @@ class annotator:
         for a in annotations:
             #copy annotations 
             shutil.copy(os.path.join(annotations_path, a), self.complete_dataset_xml_dir)
+        
+        # remove thumpbs
+        fc.remove_thumbs(self.chips_positive_dir)
         
         #Move images
         images = os.listdir(self.chips_positive_dir)
@@ -652,7 +658,7 @@ class annotator:
                 #move images
                 shutil.copy(os.path.join(self.tiles_dir, t), self.complete_dataset_tile_dir)
         
-        print(len(annotations),len(images))
+        #print(len(annotations),len(images))
         return len(annotations), len(images)
 """
 Find file paths

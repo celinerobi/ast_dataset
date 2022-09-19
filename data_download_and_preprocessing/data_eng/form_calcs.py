@@ -729,6 +729,7 @@ def correct_inconsistent_labels_xml(xml_dir):
                    "external_floating_roof_tank": "external_floating_roof_tank",
                    "external floating roof tank": "external_floating_roof_tank",
                    'external_floating_roof_tank ': "external_floating_roof_tank",
+                   'external_closed_roof_tank': "external_floating_roof_tank",
                    "water_treatment_tank": "sedimentation_tank",
                    'water_treatment_tank ': "sedimentation_tank",
                    "water_treatment_plant": "sedimentation_tank",
@@ -1458,8 +1459,6 @@ def compare_images(t_2_chip, labeled_img):
         ## move incorrectly named image if it one of the same name has not already been moved
         return(False)
     
-
-    
 def compare_move_imgs_standard(t_2_chip, x, y, tile_name, img_count, img_in_tile_paths, xml_in_tile_paths, img_in_tile_names,
                                compile_tile_dir, incorrect_dir):
     img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
@@ -1503,7 +1502,38 @@ def compare_move_imgs_state_year(t_2_chip, x, y, tile_name, count, img_count,
             #    copy_and_replace_images_xml(img_name, img_path, xml_path, incorrect_dir) #move to incorrect directory
     return(img_count)
         #counter for image pathway
+
+def iterate_over_tile_compare_move_state_year_by_image_name(tile_name, compiled_by_tile_dir, tile_dir_path, 
+                                                            images_do_not_match_names_dir, correctly_chipped_incorrect_dir,
+                                                            img_paths, xml_paths, img_names, img_count_state_year, img_count_standard):
     
+    compile_tile_dir = fc.make_by_tile_dirs(compiled_by_tile_dir, tile_name)
+    tile, row_index, col_index = fc.read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    
+    img_in_tile_paths = [string for string in img_paths if tile_name in string]
+    xml_in_tile_paths = [string for string in xml_paths if tile_name in string]
+    img_in_tile_names = [string for string in img_names if tile_name in string]
+    assert len(img_in_tile_paths) == len(xml_in_tile_paths) == len(img_in_tile_names), "The same number of images and xmls"
+                                                            
+    count = 1
+    for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
+        for x in range(0, row_index): #cols   
+            standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
+            state_year_img_name_wo_ext = tile_name + '_'+ str(count).zfill(6) #specify the chip names
+
+            t_2_chip = fc.tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
+            img_count_state_year = fc.compare_move_imgs_state_year(t_2_chip, x, y, tile_name, count, img_count_state_year,
+                                                                   img_in_tile_paths, xml_in_tile_paths, img_in_tile_names, 
+                                                                   compile_tile_dir, images_do_not_match_names_dir)
+            
+            img_count_standard = fc.compare_move_imgs_standard(t_2_chip, x, y, tile_name, img_count_standard,
+                                                               img_in_tile_paths, xml_in_tile_paths, img_in_tile_names,
+                                                               compile_tile_dir, correctly_chipped_incorrect_dir)
+            count += 1  
+            
+    return(img_count_state_year, img_count_standard)
+
+
 def get_six_digit_index_from_img_path(state_year_img_paths):
     six_digit_index = []
     for img_path in state_year_img_paths:
@@ -1599,11 +1629,7 @@ def multi_iterate_over_tile_compare_move_state_year_by_six_digit_index(tile_name
     print(len(state_year_img_paths), len(state_year_xml_paths))
     print(img_count_state_year)
     
-def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, correct_chip_dir_path):
-    ys = []
-    xs = []
-    six_digit_idxs = []
-     
+def make_tile_dir_and_get_correct_imgs(tile_name, compile_dir_path, tile_dir_path, correct_chip_dir_path):
     compile_tile_dir = make_by_tile_dirs(compile_dir_path, tile_name) #make directory to store positive chips and xmls
     tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     
@@ -1611,14 +1637,9 @@ def get_tile_dir_and_parameters(tile_name, compile_dir_path, tile_dir_path, corr
     for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
         for x in range(0, row_index): #cols   
             t_2_chip = tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
-            #ys.append(y)
-            #xs.append(x)
-            #get imgs/xmls where the count matches a la
-            #six_digit_idxs.append(str(count).zfill(6))
             six_digit_idx = str(count).zfill(6)
             cv2.imwrite(os.path.join(correct_chip_dir_path, tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx+".jpg"), t_2_chip) #save images  
             count += 1  
-    #return(ys, xs, six_digit_idxs)
 
 
 def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, compile_dir):
@@ -1653,6 +1674,42 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
     #return(img_paths_copy, xml_paths_copy)
     
     
+def compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, correct_img_path, compile_dir,
+                                                       state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
+                                                       yx_list, standard_img_paths, standard_xml_paths):
+    correct_img_name = os.path.splitext(os.path.basename(correct_img_path))[0] #get correct img name
+    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
+    
+    #get standard and state idxs that match the correct img
+    state_idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
+    standard_idxs, = np.where((xy_list == (y, x)).all(axis=1))
+    
+    #turn the y/x into integers
+    y = int(y)
+    x = int(x)
+
+    tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
+
+    #get standard and state_year img_names
+    standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
+    
+    #identify imgs/xmls that match the chip position (state imgs)
+    for idx in state_idxs:
+        img_path = state_year_img_paths[idx]
+        xml_path = state_year_xml_paths[idx]
+        img = cv2.imread(img_path)
+        if (np.sum(img) != 0) & (compare_images(correct_img, img)): #only move images if they are not all black and they match the correct image
+            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                
+    #identify imgs/xmls that match the chip position (standard imgs)
+    for idx in standard_idxs:
+        img_path = standard_img_paths[idx]
+        xml_path = standard_xml_paths[idx]
+        img = cv2.imread(img_path)
+        if (np.sum(img) != 0) & (compare_images(correct_img, img)):
+            #print("match", correct_img_path, img_path)
+            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+                
 ####################################################################################################################
 ########## Identify images where the contents and naming conventions doe not match ##################################
 #####################################################################################################################

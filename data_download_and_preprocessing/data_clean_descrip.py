@@ -30,10 +30,10 @@ def get_args_parse():
                         help='path to complete dataset directory.')
     parser.add_argument('--annotation_directory', type=str, default=None,
                         help='Name of the folder containing the annotations for positive images of interests.')
-    parser.add_argument('--tiles_remaining', type=str, default=None,
-                        help='The name of the numpy array specifying the tiles that remain to be annotated.')
-    parser.add_argument('--tiles_labeled', type=str, default=None,
-                        help='The name of the numpy array specifying the tiles that have been annotated.')
+    #parser.add_argument('--tiles_remaining', type=str, default=None,
+    #                    help='The name of the numpy array specifying the tiles that remain to be annotated.')
+    #parser.add_argument('--tiles_labeled', type=str, default=None,
+    #                    help='The name of the numpy array specifying the tiles that have been annotated.')
     args = parser.parse_args()
     return args
 
@@ -46,8 +46,8 @@ def main(args):
         anno_path = os.path.join(args.complete_dataset_directory, args.annotation_directory)
         ap.dataset_summary_assessment(np.hstack((img_path,anno_path)), multiple = False)  
 
-    if args.tiles_remaining is not None and args.tiles_labeled is not None:
-        ap.tile_progress(args.tiles_labeled, args.tiles_remaining)
+    #if args.tiles_remaining is not None and args.tiles_labeled is not None:
+    #    ap.tile_progress(args.tiles_labeled, args.tiles_remaining)
 
 if __name__ == '__main__':
     args = get_args_parse()

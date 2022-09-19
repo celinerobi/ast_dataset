@@ -109,8 +109,9 @@ python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator
                                              
 Example:
 python correct_incon_labels.py --parent_directory D:\Unverified_images\student_reviewed_unverified_images
+python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\test_set
 
-python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset
+python correct_incon_labels.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset
 
 Z:\temp\rechip
 ### 7. Identify Missing Annotations 
@@ -127,8 +128,14 @@ python data_clean_descrip.py  --parent_directory \dir_containing_all_annotator_f
                               --tiles_labeled path_to_numpy_array
                                              
 Example for complete dataset:
-python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset --annotation_directory chips_positive_corrected_xml 
---tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
+python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\verified\verified_sets\complete_dataset --annotation_directory chips_positive_xml 
+
+python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\test_set --annotation_directory chips_positive_corrected_xml
+#--tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy 
+
+python data_clean_descrip.py --complete_dataset_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\complete_dataset --annotation_directory chips_positive_corrected_xml
+
+
 
 ### Issue with missing rows
 chip_naming_convention_correction.ipynb
