@@ -1682,7 +1682,7 @@ def compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, cor
     
     #get standard and state idxs that match the correct img
     state_idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
-    standard_idxs, = np.where((xy_list == (y, x)).all(axis=1))
+    standard_idxs, = np.where((yx_list == (y, x)).all(axis=1))
     
     #turn the y/x into integers
     y = int(y)
