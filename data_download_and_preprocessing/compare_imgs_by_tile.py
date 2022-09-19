@@ -42,7 +42,7 @@ def main(args):
     
     standard_img_paths = fc.read_list(os.path.join(args.param_directory,"standard_img_paths.json"))
     standard_xml_paths = fc.read_list(os.path.join(args.param_directory,"standard_xml_paths.json"))
-    yx_list = np.load("yx_list.npy")
+    yx_list = np.load(os.path.join(args.param_directory,"yx_list.npy"))
 
     fc.remove_thumbs(args.by_tile_correct_chips_dir)
     by_tile_correct_chips_paths = glob(args.by_tile_correct_chips_dir + "/*.jpg", recursive = True)
