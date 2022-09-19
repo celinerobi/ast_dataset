@@ -34,7 +34,7 @@ def get_args_parse():
     args = parser.parse_args()
     return args
 
-def main(args)
+def main(args):
     correct_chip_dir_path = os.path.join(args.compile_dir, args.tile_name, "chips")
     os.makedirs(correct_chip_dir_path, exist_ok=True)        
     fc.make_tile_dir_and_get_correct_imgs(args.tile_name, args.compile_dir, args.tile_dir_path, correct_chip_dir_path)
