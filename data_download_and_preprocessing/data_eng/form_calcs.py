@@ -1709,7 +1709,40 @@ def compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, cor
         if (np.sum(img) != 0) & (compare_images(correct_img, img)):
             #print("match", correct_img_path, img_path)
             copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+
+def rename_x_y_index_named_chips(compile_by_tile_dir, tile_names):
+    #change to moving for dcc
+    #correct_img_path.rsplit("-",3) # tile name formated image name
+    for tile in tqdm.tqdm(tile_names):
+        chip_by_tile_path = os.path.join(compile_by_tile_dir, tile, "chips")
+        chip_paths = sorted(glob(chip_by_tile_path + "/*.jpg", recursive = True))
+        for chip_path in chip_paths:
+            chip_name = os.path.splitext(os.path.basename(chip_path))[0]
+            
+            if chip_name.count("-") > 0:
+                tile_name, y, x, six_digit_idx = chip_name.rsplit("-",3)
+                y = int(y)
+                x = int(x)
+                standard_quad_chip_path = os.path.join(chip_by_tile_path,
+                                                       tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}"+".jpg") # row_col
+                os.rename(chip_path, standard_quad_chip_path)
                 
+def rename_x_y_index_named_chips_by_tile(compile_by_tile_dir, tile_name):
+    #change to moving for dcc
+    #correct_img_path.rsplit("-",3) # tile name formated image name
+    chip_by_tile_path = os.path.join(compile_by_tile_dir, tile_name, "chips")
+    chip_paths = sorted(glob(chip_by_tile_path + "/*.jpg", recursive = True))
+    
+    for chip_path in chip_paths:
+        chip_name = os.path.splitext(os.path.basename(chip_path))[0]
+        
+        if chip_name.count("-") > 0:
+            tile_name_split, y, x, six_digit_idx = chip_name.rsplit("-",3)
+            y = int(y)
+            x = int(x)
+            standard_quad_chip_path = os.path.join(chip_by_tile_path,
+                                                   tile_name_split + '_' + f"{y:02}"  + '_' + f"{x:02}"+".jpg") # row_col
+            os.rename(chip_path, standard_quad_chip_path)
 ####################################################################################################################
 ########## Identify images where the contents and naming conventions doe not match ##################################
 #####################################################################################################################
