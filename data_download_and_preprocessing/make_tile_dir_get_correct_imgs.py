@@ -35,10 +35,14 @@ def get_args_parse():
     return args
 
 def main(args):
-    correct_chip_dir_path = os.path.join(args.compile_dir, args.tile_name, "chips")
-    os.makedirs(correct_chip_dir_path, exist_ok=True)        
-    fc.make_tile_dir_and_get_correct_imgs(args.tile_name, args.compile_dir, args.tile_dir_path, correct_chip_dir_path)
-     
+    by_tile_correct_chips_w_black_sq_dir_path = os.path.join(args.compile_dir, args.tile_name, "chips")
+    by_tile_correct_chips_wo_black_sq_dir_path = os.path.join(args.compile_dir, args.tile_name, "chips_wo_black")
+    os.makedirs(by_tile_correct_chips_w_black_sq_dir_path, exist_ok=True)    
+    os.makedirs(by_tile_correct_chips_wo_black_sq_dir_path, exist_ok=True)        
+
+    fc.make_tile_dir_and_get_correct_imgs_w_and_wo_black_sq(args.tile_name, args.compile_dir, args.tile_dir_path, 
+                                                            by_tile_correct_chips_w_black_sq_dir_path,
+                                                            by_tile_correct_chips_wo_black_sq_dir_path)
 if __name__ == '__main__':
     ### Get the arguments 
     args = get_args_parse()

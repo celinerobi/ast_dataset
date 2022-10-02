@@ -1641,7 +1641,29 @@ def make_tile_dir_and_get_correct_imgs(tile_name, compile_dir_path, tile_dir_pat
             cv2.imwrite(os.path.join(correct_chip_dir_path, tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx+".jpg"), t_2_chip) #save images  
             count += 1  
 
+def make_tile_dir_and_get_correct_imgs_w_and_wo_black_sq(tile_name, compile_dir_path, tile_dir_path,
+                                                         correct_chip_w_black_sq_dir_path,correct_chip_wo_black_sq_dir_path):
+    compile_tile_dir = fc.make_by_tile_dirs(compile_dir_path, tile_name) #make directory to store positive chips and xmls
+    tile, row_index, col_index = fc.read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    item_dim = (int(512))
+    count = 1
+    for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
+        for x in range(0, row_index): #cols  
+            #define image name
+            six_digit_idx = str(count).zfill(6)
+            t_2_chip_wo_black_sq_img_name=tile_name + "-" + f"{y:02}"  + "-" + f"{x:02}" + "-" + six_digit_idx + ".jpg" #for compare analysis
+            standard_quad_img_name_wo_ext=tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" + ".jpg" # row_col #for save
 
+            #save images without black pixels added  
+            t_2_chip_wo_black_sq = tile[y*item_dim:y*item_dim+item_dim, x*(item_dim):x*(item_dim)+item_dim]
+            if t_2_chip_wo_black_sq.size != 0:
+                #write image without black pixels added 
+                cv2.imwrite(os.path.join(correct_chip_wo_black_sq_dir_path, t_2_chip_wo_black_sq_img_name), t_2_chip_wo_black_sq) 
+                #write and save black pixels added  
+                t_2_chip_w_black_sq = tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
+                cv2.imwrite(os.path.join(correct_chip_w_black_sq_dir_path, standard_quad_img_name_wo_ext), t_2_chip_w_black_sq) #write images 
+            count += 1 
+            
 def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths, compile_dir):
     #change to moving for dcc
     #correct_img_path.rsplit("-",3) # tile name formated image name
@@ -1709,6 +1731,42 @@ def compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, cor
         if (np.sum(img) != 0) & (compare_images(correct_img, img)):
             #print("match", correct_img_path, img_path)
             copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
+            compare_imgs_state_year_standard_from_six_digit_xy_idxs_wo_black_pixels
+def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_black_sq, correct_img_wo_black_sq_path, 
+                                                                            compile_dir, state_year_six_digit_idx_list, 
+                                                                            state_year_img_paths, state_year_xml_paths,
+                                                                            yx_list, standard_img_paths, standard_xml_paths):
+    
+    correct_img_name = os.path.splitext(os.path.basename(correct_img_wo_black_sq_path))[0] #get correct img name
+    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
+    
+    by_tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
+    
+    #get standard and state idxs that match the correct img
+    state_idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
+    standard_idxs, = np.where((yx_list == (y, x)).all(axis=1))
+    #turn the y/x into integers
+    y = int(y)
+    x = int(x)
+    standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # (row_col) get standard and state_year img_names
+    
+    #identify imgs/xmls that match the chip position (state imgs)
+    for idx in state_idxs:
+        #get verified img/xml path
+        img_path = state_year_img_paths[idx]
+        xml_path = state_year_xml_paths[idx]
+        img = cv2.imread(img_path)
+        if (np.sum(img) != 0) & (compare_images(correct_img_wo_black_sq, img)): #only move images if they are not all black and they match the correct image
+            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, by_tile_dir) #use standard name and copy to compiled directory       
+    
+    #identify imgs/xmls that match the chip position (standard imgs)
+    for idx in standard_idxs:
+        img_path = standard_img_paths[idx]
+        xml_path = standard_xml_paths[idx]
+        img = cv2.imread(img_path)
+        if (np.sum(img) != 0) & (compare_images(correct_img_wo_black_sq, img)):
+            #print("match", correct_img_path, img_path)
+            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, by_tile_dir) #use standard name and copy to compiled directory
 
 def rename_x_y_index_named_chips(compile_by_tile_dir, tile_names):
     #change to moving for dcc
@@ -1726,7 +1784,7 @@ def rename_x_y_index_named_chips(compile_by_tile_dir, tile_names):
                 standard_quad_chip_path = os.path.join(chip_by_tile_path,
                                                        tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}"+".jpg") # row_col
                 os.rename(chip_path, standard_quad_chip_path)
-                
+
 def rename_x_y_index_named_chips_by_tile(compile_by_tile_dir, tile_name):
     #change to moving for dcc
     #correct_img_path.rsplit("-",3) # tile name formated image name

@@ -27,8 +27,10 @@ def get_args_parse():
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
     parser.add_argument('--compile_dir', type=str, default=None,
                         help='path to dir to store all correct images.')
-    parser.add_argument('--by_tile_correct_chips_dir', type=str, default=False,
-                        help='path to all tiles')
+    #parser.add_argument('--by_tile_correct_chips_w_black_sq_dir_path', type=str, default=False,
+    #                    help='path to correct chips with black pixels')
+    parser.add_argument('--by_tile_correct_chips_wo_black_sq_dir_path', type=str, default=False,
+                        help='path to correct chips without black pixels')
     parser.add_argument('--param_directory', type=str, default=None,
                         help='use original (True), or corrected (False) annotations')
     args = parser.parse_args()
@@ -43,16 +45,20 @@ def main(args):
     standard_img_paths = fc.read_list(os.path.join(args.param_directory,"standard_img_paths.json"))
     standard_xml_paths = fc.read_list(os.path.join(args.param_directory,"standard_xml_paths.json"))
     yx_list = np.load(os.path.join(args.param_directory,"yx_list.npy"))
+                                                            
+    #fc.remove_thumbs(args.by_tile_correct_chips_w_black_sq_dir_path)
+    fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir_path)
 
-    fc.remove_thumbs(args.by_tile_correct_chips_dir)
-    by_tile_correct_chips_paths = glob(args.by_tile_correct_chips_dir + "/*.jpg", recursive = True)
+    by_tile_correct_chips_wo_black_sq_dir_paths=sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir_path + "/*.jpg", recursive = True))
+
     
-    for correct_img_path in by_tile_correct_chips_paths:
-        correct_img = cv2.imread(correct_img_path)
-        if np.sum(correct_img) != 0:
-            fc.compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, correct_img_path, args.compile_dir,
-                                                       state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
-                                                       yx_list, standard_img_paths, standard_xml_paths)
+    for by_tile_correct_chips_wo_black_sq_dir_path in by_tile_correct_chips_wo_black_sq_dir_paths:
+        correct_img_wo_black_sq = cv2.imread(by_tile_correct_chips_wo_black_sq_dir_path)
+        if np.sum(correct_img_wo_black_sq) != 0:
+            fc.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_black_sq, by_tile_correct_chips_wo_black_sq_dir_path, 
+                                                                          args.compile_dir, state_year_six_digit_idx_list, 
+                                                                          state_year_img_paths, state_year_xml_paths,
+                                                                          yx_list, standard_img_paths, standard_xml_paths)
 
 
 if __name__ == '__main__':
