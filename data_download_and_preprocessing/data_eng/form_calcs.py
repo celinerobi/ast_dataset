@@ -1695,43 +1695,6 @@ def compare_imgs_xmls_x_y_index_dcc(correct_img_path, state_year_six_digit_idx_l
                     #xml_paths_copy.remove(xml_path)
     #return(img_paths_copy, xml_paths_copy)
     
-    
-def compare_imgs_state_year_standard_from_six_digit_xy_idxs_dcc(correct_img, correct_img_path, compile_dir,
-                                                       state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
-                                                       yx_list, standard_img_paths, standard_xml_paths):
-    correct_img_name = os.path.splitext(os.path.basename(correct_img_path))[0] #get correct img name
-    tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
-    
-    #get standard and state idxs that match the correct img
-    state_idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
-    standard_idxs, = np.where((yx_list == (y, x)).all(axis=1))
-    
-    #turn the y/x into integers
-    y = int(y)
-    x = int(x)
-
-    tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
-
-    #get standard and state_year img_names
-    standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
-    
-    #identify imgs/xmls that match the chip position (state imgs)
-    for idx in state_idxs:
-        img_path = state_year_img_paths[idx]
-        xml_path = state_year_xml_paths[idx]
-        img = cv2.imread(img_path)
-        if (np.sum(img) != 0) & (compare_images(correct_img, img)): #only move images if they are not all black and they match the correct image
-            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
-                
-    #identify imgs/xmls that match the chip position (standard imgs)
-    for idx in standard_idxs:
-        img_path = standard_img_paths[idx]
-        xml_path = standard_xml_paths[idx]
-        img = cv2.imread(img_path)
-        if (np.sum(img) != 0) & (compare_images(correct_img, img)):
-            #print("match", correct_img_path, img_path)
-            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, tile_dir) #use standard name and copy to compiled directory
-            
             
 def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_black_sq, correct_img_wo_black_sq_path, 
                                                                             compile_dir, state_year_six_digit_idx_list, 
