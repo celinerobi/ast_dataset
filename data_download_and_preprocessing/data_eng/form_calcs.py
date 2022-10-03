@@ -1507,8 +1507,8 @@ def iterate_over_tile_compare_move_state_year_by_image_name(tile_name, compiled_
                                                             images_do_not_match_names_dir, correctly_chipped_incorrect_dir,
                                                             img_paths, xml_paths, img_names, img_count_state_year, img_count_standard):
     
-    compile_tile_dir = fc.make_by_tile_dirs(compiled_by_tile_dir, tile_name)
-    tile, row_index, col_index = fc.read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    compile_tile_dir = make_by_tile_dirs(compiled_by_tile_dir, tile_name)
+    tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     
     img_in_tile_paths = [string for string in img_paths if tile_name in string]
     xml_in_tile_paths = [string for string in xml_paths if tile_name in string]
@@ -1521,12 +1521,12 @@ def iterate_over_tile_compare_move_state_year_by_image_name(tile_name, compiled_
             standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # row_col
             state_year_img_name_wo_ext = tile_name + '_'+ str(count).zfill(6) #specify the chip names
 
-            t_2_chip = fc.tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
-            img_count_state_year = fc.compare_move_imgs_state_year(t_2_chip, x, y, tile_name, count, img_count_state_year,
+            t_2_chip = tile_to_chip_array(tile, x, y, int(512)) #get correct chip from tile
+            img_count_state_year = compare_move_imgs_state_year(t_2_chip, x, y, tile_name, count, img_count_state_year,
                                                                    img_in_tile_paths, xml_in_tile_paths, img_in_tile_names, 
                                                                    compile_tile_dir, images_do_not_match_names_dir)
             
-            img_count_standard = fc.compare_move_imgs_standard(t_2_chip, x, y, tile_name, img_count_standard,
+            img_count_standard = compare_move_imgs_standard(t_2_chip, x, y, tile_name, img_count_standard,
                                                                img_in_tile_paths, xml_in_tile_paths, img_in_tile_names,
                                                                compile_tile_dir, correctly_chipped_incorrect_dir)
             count += 1  
@@ -1643,8 +1643,8 @@ def make_tile_dir_and_get_correct_imgs(tile_name, compile_dir_path, tile_dir_pat
 
 def make_tile_dir_and_get_correct_imgs_w_and_wo_black_sq(tile_name, compile_dir_path, tile_dir_path,
                                                          correct_chip_w_black_sq_dir_path,correct_chip_wo_black_sq_dir_path):
-    compile_tile_dir = fc.make_by_tile_dirs(compile_dir_path, tile_name) #make directory to store positive chips and xmls
-    tile, row_index, col_index = fc.read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
+    compile_tile_dir = make_by_tile_dirs(compile_dir_path, tile_name) #make directory to store positive chips and xmls
+    tile, row_index, col_index = read_tile(os.path.join(tile_dir_path, tile_name + ".tif")) #read in tile
     item_dim = (int(512))
     count = 1
     for y in range(0, row_index): #rows #use row_index to account for the previous errors in state/year naming conventions
