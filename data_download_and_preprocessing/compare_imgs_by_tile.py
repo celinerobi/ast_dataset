@@ -50,7 +50,6 @@ def main(args):
     fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir_path)
 
     by_tile_correct_chips_wo_black_sq_dir_paths=sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir_path + "/*.jpg", recursive = True))
-
     
     for by_tile_correct_chips_wo_black_sq_dir_path in by_tile_correct_chips_wo_black_sq_dir_paths:
         correct_img_wo_black_sq = cv2.imread(by_tile_correct_chips_wo_black_sq_dir_path)

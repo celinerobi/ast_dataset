@@ -29,7 +29,7 @@ def get_args_parse():
                         help='path to state year verified img subfolder.')
     parser.add_argument('--verified_standard_quad_subfolders_path', type=str, default=None,
                         help='path to standard verified img subfolder.')
-    parser.add_argument('--params_directory', type=str, default=None,
+    parser.add_argument('--param_directory', type=str, default=None,
                         help='path to directory to hold parameters')
     args = parser.parse_args()
     return args
