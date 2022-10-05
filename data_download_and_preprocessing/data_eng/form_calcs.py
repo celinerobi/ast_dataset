@@ -1705,7 +1705,7 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_bl
     row_dim = correct_img_wo_black_sq.shape[0] #get row dim
     col_dim = correct_img_wo_black_sq.shape[1] #get col dim
     
-    if min(row,col) >= 3:#compare function has a minimum window set to 3 pixels
+    if min(row_dim, col_dim) >= 3:#compare function has a minimum window set to 3 pixels
         tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
         by_tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
 
