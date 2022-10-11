@@ -38,9 +38,9 @@ python cred/AST_dataset/data_download_and_preprocessing/labelwork_distribution_d
                                             --tiles_labeled path_to_numpy_array
                                             
 Example:
-python download_distribution.py --number_of_tiles 8 --annotation_directory Kang_10 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 8 --annotation_directory Kang_10 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\labelwork --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
-python download_distribution.py --number_of_tiles 4 --annotation_directory set6 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\uncomplete_sets --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
+python labelwork_distribution_dcc.py --number_of_tiles 4 --annotation_directory set6 --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\uncomplete_sets --tiles_remaining tile_name_tile_url_remaining_expanded.npy --tiles_labeled tile_name_tile_url_labeled.npy
 
 
 
@@ -59,8 +59,8 @@ Each tile
 **Index**
 The index of a 512x512 chips which is clipped from a tile. 
 **Data clipping**
-
-
+After renaming, then copy 3_labelwork_tile_clip_dcc.py to the same path as 1_labelwork_distribution_dcc.py
+Use 3_labelwork_tile_clip_dcc.py to clip the tiles into chips that will be stored in folder "chips".
 ## 2. Seperate Positive and Negative Images
 After the annotators have annotated images, the positive (the images containing objects) and negative (the images that do not contain objects) must be placed in seperate folders.
 This can be completed by running the following script in the command line.

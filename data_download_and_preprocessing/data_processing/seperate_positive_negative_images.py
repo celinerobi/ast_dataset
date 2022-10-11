@@ -32,7 +32,7 @@ from matplotlib.patches import ConnectionPatch
 
 import data_eng.az_proc as ap
 
-def main():
+def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script supports seperating positive and negative chips after annotations')
     parser.add_argument('--annotation_directory', type=str, default=None,
@@ -40,14 +40,13 @@ def main():
     parser.add_argument('--parent_directory', type=str, default=None,
                         help='path to parent directory, holding the annotation directory.')
     args = parser.parse_args()
-    return args.annotation_directory, args.parent_directory
+    return args
 
-    
-if __name__ == '__main__':
+def main(args):
     annotation_directory, parent_directory = main()
     #create the processing class
-    dist = ap.annotator(annotation_directory)
-    dist.state_dcc_directory(parent_directory)
+    dist = ap.annotator(args.annotation_directory)
+    dist.state_dcc_directory(args.parent_directory)
     dist.make_subdirectories()
     
     #check if positive directory is created)
@@ -57,4 +56,8 @@ if __name__ == '__main__':
     dist.copy_positive_images()
     dist.copy_negative_images()
     
+if __name__ == '__main__':
+    args = get_args_parse()
+    main(args)
+
     
