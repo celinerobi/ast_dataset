@@ -21,6 +21,7 @@ from xml.dom import minidom
 
 import data_eng.az_proc as ap
 import data_eng.form_calcs as fc
+import data_eng.compare as compare
 
 def get_args_parse():
     parser = argparse.ArgumentParser(
@@ -40,9 +41,9 @@ def main(args):
     os.makedirs(by_tile_correct_chips_w_black_sq_dir_path, exist_ok=True)    
     os.makedirs(by_tile_correct_chips_wo_black_sq_dir_path, exist_ok=True)        
 
-    fc.make_tile_dir_and_get_correct_imgs_w_and_wo_black_sq(args.tile_name, args.compile_dir, args.tile_dir_path, 
-                                                            by_tile_correct_chips_w_black_sq_dir_path,
-                                                            by_tile_correct_chips_wo_black_sq_dir_path)
+    compare.make_tile_dir_and_get_correct_imgs_w_and_wo_black_sq(args.tile_name, args.compile_dir, args.tile_dir_path, 
+                                                                by_tile_correct_chips_w_black_sq_dir_path,
+                                                                by_tile_correct_chips_wo_black_sq_dir_path)
 if __name__ == '__main__':
     ### Get the arguments 
     args = get_args_parse()
