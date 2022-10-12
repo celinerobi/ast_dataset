@@ -1491,24 +1491,7 @@ def iterate_over_tile_compare_move_state_year_by_image_name(tile_name, compiled_
     return(img_count_state_year, img_count_standard)
 
 
-def get_six_digit_index_from_img_path(state_year_img_paths):
-    six_digit_index = []
-    for img_path in state_year_img_paths:
-        img_name = os.path.splitext(os.path.basename(img_path))[0]
-        assert img_name.count("_") > 9, "Not state year format"
-        six_digit_index.append(img_name.rsplit("_",1)[-1])
-    return(six_digit_index)
 
-def get_x_y_index(standard_img_paths):
-    xs = []
-    ys = []
-    for img_path in standard_img_paths:
-        img_name = os.path.splitext(os.path.basename(img_path))[0]
-        assert (img_name.count("_") < 9) and (img_name.split("_",1)[0] == "m"), "Not standard format"
-        y, x = img_name.split("_")[-2:] #y=row;x=col
-        ys.append(y)
-        xs.append(x)
-    return(ys,xs)
 
 def compare_move_imgs_state_year_by_six_digit_index(x, y, tile_name, count, img_count, idxs, img_paths, xml_paths, 
                                                      compile_tile_dir):

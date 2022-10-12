@@ -21,7 +21,7 @@ from xml.dom import minidom
 
 import data_eng.az_proc as ap
 import data_eng.form_calcs as fc
-
+import data_eng.compare as compare
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
@@ -41,7 +41,7 @@ def main(args):
     fc.write_list(state_year_img_paths, os.path.join(args.param_directory,"state_year_img_paths.json"))
     fc.write_list(state_year_xml_paths, os.path.join(args.param_directory,"state_year_xml_paths.json"))
     ##six digit idx
-    state_year_six_digit_idx_list = fc.get_six_digit_index_from_img_path(state_year_img_paths)
+    state_year_six_digit_idx_list = compare.get_six_digit_index_from_img_path(state_year_img_paths)
     fc.write_list(state_year_six_digit_idx_list, os.path.join(args.param_directory,"state_year_six_digit_idx_list.json"))
     #standard quad
     all_verified_standard_quad_subfolders_path = ap.img_path_anno_path(ap.list_of_sub_directories(args.verified_standard_quad_subfolders_path)) 
@@ -49,9 +49,8 @@ def main(args):
     fc.write_list(standard_img_paths, os.path.join(args.param_directory,"standard_img_paths.json"))
     fc.write_list(standard_xml_paths, os.path.join(args.param_directory,"standard_xml_paths.json"))
     #yx indx
-    ys, xs = fc.get_x_y_index(standard_img_paths)
-    yx_list = np.vstack((ys, xs)).T
-    np.save(os.path.join(args.param_directory,"yx_list.npy"), yx_list)
+    yx_array = compare.get_x_y_index(standard_img_paths)
+    np.save(os.path.join(args.param_directory,"yx_array.npy"), yx_array)
     
 if __name__ == '__main__':
     ### Get the arguments 

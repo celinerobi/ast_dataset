@@ -42,7 +42,7 @@ def main(args):
     
     standard_img_paths = fc.read_list(os.path.join(args.param_directory,"standard_img_paths.json"))
     standard_xml_paths = fc.read_list(os.path.join(args.param_directory,"standard_xml_paths.json"))
-    yx_list = np.load(os.path.join(args.param_directory,"yx_list.npy"))
+    yx_array = np.load(os.path.join(args.param_directory,"yx_array.npy"))
                                                             
     #fc.remove_thumbs(args.by_tile_correct_chips_w_black_sq_dir_path)
     fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir_path)
@@ -53,7 +53,7 @@ def main(args):
         correct_img_wo_black_sq = cv2.imread(by_tile_correct_chips_wo_black_sq_dir_path)
         compare.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(0.925, correct_img_wo_black_sq, by_tile_correct_chips_wo_black_sq_dir_path, args.compile_dir, 
                                                                            state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
-                                                                           yx_list, standard_img_paths, standard_xml_paths)
+                                                                           yx_array, standard_img_paths, standard_xml_paths)
 if __name__ == '__main__':
     ### Get the arguments 
     args = get_args_parse()
