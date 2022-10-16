@@ -51,7 +51,7 @@ def main(args):
     print(len(by_tile_correct_chips_wo_black_sq_dir_paths))
     for by_tile_correct_chips_wo_black_sq_dir_path in by_tile_correct_chips_wo_black_sq_dir_paths:
         correct_img_wo_black_sq = cv2.imread(by_tile_correct_chips_wo_black_sq_dir_path)
-        compare.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(0.925, correct_img_wo_black_sq, by_tile_correct_chips_wo_black_sq_dir_path, args.compile_dir, 
+        compare.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(0.925, correct_img_wo_black_sq, by_tile_correct_chips_wo_black_sq_dir_path, args.compile_dir, 
                                                                            state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
                                                                            yx_array, standard_img_paths, standard_xml_paths)
 if __name__ == '__main__':
