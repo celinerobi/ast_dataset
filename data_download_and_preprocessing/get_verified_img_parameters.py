@@ -38,8 +38,8 @@ def main(args):
     #state year
     all_verified_state_year_subfolders_path = ap.img_path_anno_path(ap.list_of_sub_directories(args.verified_state_year_subfolders_path)) 
     state_year_img_paths, state_year_xml_paths = fc.get_img_xml_paths(all_verified_state_year_subfolders_path)
-    fc.write_list(state_year_img_paths, os.path.join(args.param_directory,"state_year_img_paths.json"))
-    fc.write_list(state_year_xml_paths, os.path.join(args.param_directory,"state_year_xml_paths.json"))
+    fc.write_list(state_year_img_paths, os.path.join(args.param_directory, "state_year_img_paths.json"))
+    fc.write_list(state_year_xml_paths, os.path.join(args.param_directory, "state_year_xml_paths.json"))
     ##six digit idx
     state_year_six_digit_idx_list = compare.get_six_digit_index_from_img_path(state_year_img_paths)
     fc.write_list(state_year_six_digit_idx_list, os.path.join(args.param_directory,"state_year_six_digit_idx_list.json"))

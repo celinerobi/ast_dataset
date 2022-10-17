@@ -175,25 +175,30 @@ def copy_and_replace_images_xml(img_name, img_path, xml_path, new_dir):
         
     new_xml_path = os.path.join(new_dir, "chips_positive_xml", img_name + ".xml")
     shutil.copy(xml_path, new_xml_path) #destination
-    
+
 def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(compare_threshold, correct_img_wo_black_sq, correct_img_wo_black_sq_path, compile_dir,
                                                                state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
                                                                yx_array, standard_img_paths, standard_xml_paths):
                                                                    
     """ copy a given image and xml file to a new directory
     Args:
-        compare_threshold(str): Threshold for structural similarity score
+        compare_threshold(int): Threshold for structural similarity score
         correct_img_wo_black_sq(array): path to directory that stores all correctly chipped images (with the black squares to form a 512 x512 image included)
         correct_img_wo_black_sq_path(str): path to directory that stores all correctly chipped images  (with the black squares to form a 512 x512 image excluded)
         compile_dir(str):
         six_digit_index(list): list with six digit indices corresponding to position of image within tile
-        yx_array(array): array with y,x indices corresponding corresponding to position of image within tile
+        yx_array(array): array with y,x indices corresponding to position of image within tile
 
     """   
     #process correct img (wo black sq) info
     correct_img_name = os.path.splitext(os.path.basename(correct_img_wo_black_sq_path))[0] #get correct img name
     row_dim = correct_img_wo_black_sq.shape[0] #get row dim
     col_dim = correct_img_wo_black_sq.shape[1] #get col dim
+    if min(row_dim, col_dim) <= 25:#compare function has a minimum windo set to 3 pixels
+        compare_threshold = 0.95
+    else:
+        compare_threshold = 0.90
+
     if min(row_dim, col_dim) >= 3:#compare function has a minimum windo set to 3 pixels
         tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
         by_tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory 
@@ -226,7 +231,7 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(compare_threshold
 
 
 
-def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(compare_threshold, correct_img_wo_black_sq, correct_img_wo_black_sq_path, compile_dir,
+def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test1(compare_threshold, correct_img_wo_black_sq, correct_img_wo_black_sq_path, compile_dir,
                                                                state_year_six_digit_idx_list, state_year_img_paths, state_year_xml_paths,
                                                                yx_array, standard_img_paths, standard_xml_paths):
     #process correct img (wo black sq) info
@@ -277,3 +282,73 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(compare_thre
                     copy_and_replace_images_xml(standard_quad_img_name_wo_ext, img_path, xml_path, by_tile_dir) #use standard name and copy to compiled directory       
         if len(scores)>0:
             print(max(scores))
+
+def compare_images_test(t_2_chip, labeled_img, scores):
+    gray_t_2_chip = cv2.cvtColor(t_2_chip.astype(np.uint8), cv2.COLOR_BGR2GRAY) # make gray
+    gray_labeled_image = cv2.cvtColor(labeled_img.astype(np.uint8), cv2.COLOR_BGR2GRAY) #image that has been chipped from tile
+
+    score = compare_ssim(gray_t_2_chip, gray_labeled_image, win_size = 3) #set window size so that is works on the edge peices
+    scores.append(score)
+    return(scores)
+
+
+def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(correct_img_wo_black_sq, correct_img_wo_black_sq_path,
+                                                                            compile_dir, state_year_six_digit_idx_list,
+                                                                            state_year_img_paths, state_year_xml_paths,
+                                                                            yx_array, standard_img_paths, standard_xml_paths):
+    #process correct img (wo black sq) info
+    correct_img_name = os.path.splitext(os.path.basename(correct_img_wo_black_sq_path))[0] #get correct img name
+    row_dim = correct_img_wo_black_sq.shape[0] #get row dim
+    col_dim = correct_img_wo_black_sq.shape[1] #get col dim
+    if min(row_dim, col_dim) <= 25:#compare function has a minimum windo set to 3 pixels
+        compare_threshold = 0.925
+    else:
+        compare_threshold = 0.90
+
+    if min(row_dim, col_dim) >= 3:#compare function has a minimum window set to 3 pixels
+        tile_name, y, x, six_digit_idx = correct_img_name.rsplit("-",3) #identify tile name and indicies from correct img name
+        by_tile_dir = os.path.join(compile_dir, tile_name) #sub folder for correct directory
+
+        #get standard and state idxs that match the correct img
+        state_idxs, = np.where(np.array(state_year_six_digit_idx_list) == six_digit_idx)
+        standard_idxs, = np.where((yx_array == (y, x)).all(axis=1))
+        #turn the y/x into integers
+        y = int(y)
+        x = int(x)
+        standard_quad_img_name_wo_ext = tile_name + '_' + f"{y:02}"  + '_' + f"{x:02}" # (row_col) get standard and state_year img_names
+
+        #identify imgs/xmls that match the chip position (state imgs)
+        scores = []
+        img_paths = []
+        xml_paths = []
+        for idx in state_idxs:
+            #get verified img/xml path
+            img_path = state_year_img_paths[idx]
+            xml_path = state_year_xml_paths[idx]
+            img = cv2.imread(img_path)
+            img = img[0:row_dim, 0:col_dim]
+
+            if (np.sum(img) != 0):
+                img_paths.append(img_path)
+                xml_paths.append(xml_path)
+                scores = compare_images_test(correct_img_wo_black_sq, img, scores) #only move images if they are not all black and they match the correct image
+
+        #identify imgs/xmls that match the chip position (standard imgs)
+        for idx in standard_idxs:
+            img_path = standard_img_paths[idx]
+            xml_path = standard_xml_paths[idx]
+            img = cv2.imread(img_path)
+            img = img[0:row_dim, 0:col_dim]
+
+            if (np.sum(img) != 0):
+                img_paths.append(img_path)
+                xml_paths.append(xml_path)
+                scores = compare_images_test(correct_img_wo_black_sq, img, scores) #only move images if they are not all black and they match the correct image
+        #print(max(scores))
+        matches = pd.DataFrame(data={'scores': scores, 'img_paths': img_paths,'xml_paths': xml_paths})
+        match = matches.loc[matches['scores'] == max(scores)].iloc[0]
+        print(correct_img_name, row_dim,col_dim)
+        print(compare_threshold, match["scores"], match["img_paths"], match["xml_paths"])
+        if match["scores"] > compare_threshold:
+            print("match")
+            #copy_and_replace_images_xml(standard_quad_img_name_wo_ext, match["img_paths"], match["xml_paths"], by_tile_dir) #use standard name and copy to compiled directory
