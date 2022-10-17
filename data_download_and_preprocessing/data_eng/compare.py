@@ -4,6 +4,7 @@ import copy
 import argparse
 
 import math
+import pandas as pd
 import numpy as np
 from glob import glob
 import tqdm
@@ -12,7 +13,6 @@ import shutil
 
 import data_eng.az_proc as ap
 import data_eng.form_calcs as fc
-import data_eng.compare as compare
 
 ###################################################################################
 ###############    verified image parameter functions   ###########################

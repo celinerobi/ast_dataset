@@ -3,6 +3,8 @@ import cv2
 import argparse
 
 import numpy as np
+import pandas as pd
+import shutil
 
 from glob import glob
 
@@ -40,7 +42,6 @@ def main(args):
         compare.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(correct_chip_wo_black_sq,
                             correct_chip_wo_black_sq_path, args.compile_dir, state_year_six_digit_idx_list,
                            state_year_img_paths, state_year_xml_paths, yx_array, standard_img_paths, standard_xml_paths)
-
 
 if __name__ == '__main__':
     # Get the arguments
