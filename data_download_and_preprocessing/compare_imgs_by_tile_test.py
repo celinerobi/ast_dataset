@@ -35,18 +35,15 @@ def main(args):
     yx_array = np.load(os.path.join(args.param_directory, "yx_array.npy"))
 
     fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir)
-    correct_chips_wo_black_sq_paths=sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir + "/*.jpg", recursive=True))
+    correct_chips_wo_black_sq_paths = sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir + "/*.jpg", recursive=True))
     print(len(correct_chips_wo_black_sq_paths))
     for correct_chip_wo_black_sq_path in correct_chips_wo_black_sq_paths:
         correct_chip_wo_black_sq = cv2.imread(correct_chip_wo_black_sq_path)
         compare.compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs_test(correct_chip_wo_black_sq,
-                            correct_chip_wo_black_sq_path, args.compile_dir, state_year_six_digit_idx_list,
-                           state_year_img_paths, state_year_xml_paths, yx_array, standard_img_paths, standard_xml_paths)
+                        correct_chip_wo_black_sq_path, args.compile_dir, state_year_six_digit_idx_list,
+                        state_year_img_paths, state_year_xml_paths, yx_array, standard_img_paths, standard_xml_paths)
 
 if __name__ == '__main__':
     # Get the arguments
     args = get_args_parse()
     main(args)
-    
- 
-    
