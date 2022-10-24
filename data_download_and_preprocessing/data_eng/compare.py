@@ -215,7 +215,6 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_bl
                                                               yx_array, standard_img_paths, standard_xml_paths):
     """ copy a given image and xml file to a new directory
     Args:
-        compare_threshold(int): Threshold for structural similarity score
         correct_img_wo_black_sq(array): path to directory that stores all correctly chipped images
         (with the black squares to form a 512 x512 image included)
         correct_img_wo_black_sq_path(str): path to directory that stores all correctly chipped images
@@ -223,6 +222,7 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_bl
         compile_dir(str):
         six_digit_index(list): list with six digit indices corresponding to position of image within tile
         yx_array(array): array with y,x indices corresponding to position of image within tile
+        standard_img_paths(list): list of paths to verified images with state year file name formatting
 
     """
     # process correct img (wo black sq) info
@@ -249,44 +249,46 @@ def compare_imgs_wo_blk_pxls_state_yr_std_from_6_digit_xy_idxs(correct_img_wo_bl
         compare_threshold = []
         img_paths = []
         xml_paths = []
-        for idx in state_idxs:
-            # get verified img/xml path
-            img_path = state_year_img_paths[idx]
-            xml_path = state_year_xml_paths[idx]
-            img_name = img_path_to_std_img_name(img_path)
-            img = cv2.imread(img_path)
-            img = img[0:row_dim, 0:col_dim]
+        if len(np.unique(state_idxs, axis=0)) > 0:
+            for idx in state_idxs:
+                # get verified img/xml path
+                img_path = state_year_img_paths[idx]
+                xml_path = state_year_xml_paths[idx]
+                img_name = img_path_to_std_img_name(img_path)
+                img = cv2.imread(img_path)
+                img = img[0:row_dim, 0:col_dim]
 
-            if np.sum(img) != 0:
-                img_paths.append(img_path)
-                xml_paths.append(xml_path)
-                scores = compare_images(correct_img_wo_black_sq, img, scores)
-                compare_threshold.append(specify_compare_threshold(row_dim, col_dim,
-                                                                   img_name, state_year_img_name_wo_ext))
+                if np.sum(img) != 0:
+                    img_paths.append(img_path)
+                    xml_paths.append(xml_path)
+                    scores = compare_images(correct_img_wo_black_sq, img, scores)
+                    compare_threshold.append(specify_compare_threshold(row_dim, col_dim,
+                                                                       img_name, state_year_img_name_wo_ext))
         # identify imgs/xmls that match the chip position (standard imgs)
-        for idx in standard_idxs:
-            img_path = standard_img_paths[idx]
-            xml_path = standard_xml_paths[idx]
-            img_name = img_path_to_std_img_name(img_path)
-            img = cv2.imread(img_path)
-            img = img[0:row_dim, 0:col_dim]
+        if len(np.unique(standard_idxs, axis=0)) > 0:
+            for idx in standard_idxs:
+                img_path = standard_img_paths[idx]
+                xml_path = standard_xml_paths[idx]
+                img_name = img_path_to_std_img_name(img_path)
+                img = cv2.imread(img_path)
+                img = img[0:row_dim, 0:col_dim]
 
-            if np.sum(img) != 0:
-                img_paths.append(img_path)
-                xml_paths.append(xml_path)
-                scores = compare_images(correct_img_wo_black_sq, img, scores)
-                compare_threshold.append(specify_compare_threshold(row_dim, col_dim,
-                                                                   img_name, standard_quad_img_name_wo_ext))
+                if np.sum(img) != 0:
+                    img_paths.append(img_path)
+                    xml_paths.append(xml_path)
+                    scores = compare_images(correct_img_wo_black_sq, img, scores)
+                    compare_threshold.append(specify_compare_threshold(row_dim, col_dim,
+                                                                       img_name, standard_quad_img_name_wo_ext))
+        if len(scores) > 0:
+            matches = pd.DataFrame(data={'scores': scores, 'compare_threshold': compare_threshold,
+                                         'img_paths': img_paths,'xml_paths': xml_paths})
+            match = matches.loc[matches['scores'] == max(scores)].iloc[0]
 
-        matches = pd.DataFrame(data={'scores': scores, 'compare_threshold': compare_threshold,
-                                     'img_paths': img_paths,'xml_paths': xml_paths})
-        match = matches.loc[matches['scores'] == max(scores)].iloc[0]
+            print(correct_img_name, row_dim, col_dim)
+            print(match["scores"], match["compare_threshold"])
+            print(match["img_paths"])
 
-        print(correct_img_name, row_dim, col_dim)
-        print(match["scores"], match["compare_threshold"])
-        print(match["img_paths"])
-
-        if match["scores"] > match["compare_threshold"]:
-            print("match")
-            copy_and_replace_images_xml(standard_quad_img_name_wo_ext, match["img_paths"],
-                                        match["xml_paths"], by_tile_dir) # copy to compiled directory
+            if match["scores"] > match["compare_threshold"]:
+                print("match")
+                copy_and_replace_images_xml(standard_quad_img_name_wo_ext, match["img_paths"],
+                                            match["xml_paths"], by_tile_dir) # copy to compiled directory

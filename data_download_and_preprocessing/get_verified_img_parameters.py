@@ -46,8 +46,8 @@ def main(args):
     #standard quad
     all_verified_standard_quad_subfolders_path = ap.img_path_anno_path(ap.list_of_sub_directories(args.verified_standard_quad_subfolders_path)) 
     standard_img_paths, standard_xml_paths = fc.get_img_xml_paths(all_verified_standard_quad_subfolders_path)
-    fc.write_list(standard_img_paths, os.path.join(args.param_directory,"standard_img_paths.json"))
-    fc.write_list(standard_xml_paths, os.path.join(args.param_directory,"standard_xml_paths.json"))
+    fc.write_list(standard_img_paths, os.path.join(args.param_directory, "standard_img_paths.json"))
+    fc.write_list(standard_xml_paths, os.path.join(args.param_directory, "standard_xml_paths.json"))
     #yx indx
     yx_array = compare.get_x_y_index(standard_img_paths)
     np.save(os.path.join(args.param_directory,"yx_array.npy"), yx_array)

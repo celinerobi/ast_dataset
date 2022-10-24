@@ -31,11 +31,9 @@ def main(args):
     state_year_xml_paths = fc.read_list(os.path.join(args.param_directory, "state_year_xml_paths.json"))
     state_year_six_digit_idx_list = fc.read_list(os.path.join(args.param_directory,
                                                               "state_year_six_digit_idx_list.json"))
-    
     standard_img_paths = fc.read_list(os.path.join(args.param_directory, "standard_img_paths.json"))
     standard_xml_paths = fc.read_list(os.path.join(args.param_directory, "standard_xml_paths.json"))
     yx_array = np.load(os.path.join(args.param_directory, "yx_array.npy"))
-
     fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir)
     correct_chips_wo_black_sq_paths = sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir + "/*.jpg",
                                                   recursive=True))
