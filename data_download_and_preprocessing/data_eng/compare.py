@@ -10,13 +10,30 @@ import data_eng.form_calcs as fc
 
 
 def specify_compare_threshold(row_dim, col_dim, verified_img_name, correct_img_name):
-    if min(row_dim, col_dim) <= 25:  # compare function has a minimum window set to 3 pixels
+    """ compare function has a minimum window set to 3 pixels
+    Args:
+        row_dim: the dimensions of the image in the y dimension (the number of rows)
+        col_dim:
+        verified_img_name:
+        correct_img_name:
+    Returns: the compare threshold
+    """
+    min_dim = min(row_dim, col_dim)
+    if min_dim <= 15:
+        return 0.99
+    elif 15 < min_dim <= 50:
+        return 0.975
+    elif 50 < min_dim <= 100:
+        return 0.95
+    elif 100 < min_dim <= 200:
         return 0.925
+    elif 200 < min_dim <= 300:
+        return 0.9125
     else:
         if verified_img_name == correct_img_name:
             return 0.875
         else:
-            return 0.9
+            return 0.90
 
 
 def img_path_to_std_img_name(img_path):
