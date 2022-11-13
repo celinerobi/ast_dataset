@@ -103,7 +103,8 @@ python verification_and_tracking.py --tracker_file_path outputs\tile_img_annotat
 python make_complete_dataset.py  --parent_directory \dir_containing_all_chips_and_annotations
                                              
 Example:
-python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\\temp\rechip --original True
+python make_complete_dataset.py --parent_directory \\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\compiled_dataset\compile_by_tile_1 --original True
+\\oit-nas-fe13dc.oit.duke.edu\\data_commons-borsuk\\compiled_dataset
 ## 6. Standardize Object Labels 
 python correct_incon_labels.py  --parent_directory \dir_containing_all_annotator_folders
                                              

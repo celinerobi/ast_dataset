@@ -608,7 +608,7 @@ class annotator:
             tree.write(os.path.join(self.chips_positive_corrected_xml_dir, xml_file))       
             
             
-    def move_images_annotations_to_complete_dataset(self, complete_dir_path, include_tiles = False, original = True):
+    def move_images_annotations_to_complete_dataset(self, complete_dir, include_tiles = False, original = True):
         """seperate out all of the positive chips, annotations, and conditionally tiles from one directory into a new folder.
         Args:
             file_loc (str): The file location of the spreadsheet
@@ -621,9 +621,9 @@ class annotator:
             len(images): number of images
         """
         #make a complete dataset
-        self.complete_dataset_xml_dir = os.path.join(complete_dir_path, "complete_dataset",'chips_positive_xml') 
+        self.complete_dataset_xml_dir = os.path.join(complete_dir, "complete_dataset", 'chips_positive_xml')
         os.makedirs(self.complete_dataset_xml_dir, exist_ok=True) #directory to hold entire dataset annotations
-        self.complete_dataset_chips_dir = os.path.join(complete_dir_path, "complete_dataset","chips_positive") 
+        self.complete_dataset_chips_dir = os.path.join(complete_dir, "complete_dataset","chips_positive")
         os.makedirs(self.complete_dataset_chips_dir, exist_ok=True) #directory to hold xml files
        
         #Move annotations

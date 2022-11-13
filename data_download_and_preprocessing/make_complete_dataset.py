@@ -25,14 +25,16 @@ def get_args_parse():
                         help='use original (True), or corrected (False) annotations')
     parser.add_argument('--include_tiles', type=bool, default=False, 
                         help='include tiles (False), or do not include tiles (True) annotations')
+    parser.add_argument('--complete_dir', type=str, default=False,
+                        help='Path to directory to store complete dataset')
     args = parser.parse_args()
     return args
 
 def main(args):
     ### Get the subdirectories within the subdirectories (the folders from each of the allocations)
     sub_directories = list()
-    for annotator_directory in ap.list_of_sub_directories(args.parent_directory):
-        for root,dirs,files in os.walk(annotator_directory):
+    for sub_directory in ap.list_of_sub_directories(args.parent_directory):
+        for root,dirs,files in os.walk(sub_directory):
             if "chips_positive" in dirs:
                 sub_directories.append(root)
 
@@ -41,7 +43,7 @@ def main(args):
     counter_images = 0
 
     for i in range(len(sub_directories)):
-        annotator = sub_directories[i].rsplit("/",1)[1].split("\\")[0] #get the annotator name
+        # annotator = sub_directories[i].rsplit("/",1)[1].split("\\")[0] #get the annotator name
         sub_directory = sub_directories[i].rsplit("/",1)[1] #get the sub folders for each annotator 
 
         print("The current subdirectory:", sub_directory)
@@ -50,7 +52,8 @@ def main(args):
         dist = ap.annotator(sub_directory)
         dist.state_dcc_directory(args.parent_directory)
         dist.make_subdirectories()    
-        annotations, images = dist.move_images_annotations_to_complete_dataset(args.include_tiles, args.original)
+        annotations, images = dist.move_images_annotations_to_complete_dataset(args.complete_dir,
+                                                                               args.include_tiles, args.original)
 
         counter_annotations += annotations # count the number of annotations 
         counter_images += images #count the number of images
