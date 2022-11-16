@@ -43,8 +43,8 @@ def main(args):
             dist.correct_inconsistent_labels_xml()   
             
     if args.complete_dir is not None:
-        dist = ap.annotator(args.complete_dir.rsplit("\\",1)[1])
-        dist.state_dcc_directory(args.complete_dir.rsplit("\\",1)[0])
+        dist = ap.annotator(os.path.basename(args.complete_dir))
+        dist.state_dcc_directory(os.path.dirname(args.complete_dir))
         dist.make_subdirectories()
         dist.correct_inconsistent_labels_xml()   
 
