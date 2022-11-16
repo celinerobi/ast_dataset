@@ -35,7 +35,7 @@ from tqdm.notebook import tqdm_notebook
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--parent_directory', type = str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
+    parser.add_argument('--parent_dir', type = str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
                         help = 'path to parent directory; the directory of the storge space.')
     parser.add_argument('--complete_dataset_path', type = str, default = "verified/complete_dataset",
                         help = 'path to the verified complete dataset.')
@@ -52,9 +52,9 @@ def main(args):
     tile_names_tile_urls_complete_array = np.load(args.tile_names_tile_urls_complete_array_path)
 
     #create folder to hold tiles in completed dataset
-    path_to_tiles_folder_complete_dataset = os.path.join(args.parent_directory, args.complete_dataset_path,"tiles")
-    path_positive_images_complete_dataset = os.path.join(args.parent_directory, args.complete_dataset_path,"chips_positive")
-    path_to_verified_sets = os.path.join(args.parent_directory, args.complete_dataset_path,"verified//verified_sets")
+    path_to_tiles_folder_complete_dataset = os.path.join(args.parent_dir, args.complete_dataset_path,"tiles")
+    path_positive_images_complete_dataset = os.path.join(args.parent_dir, args.complete_dataset_path,"chips_positive")
+    path_to_verified_sets = os.path.join(args.parent_dir, args.complete_dataset_path,"verified//verified_sets")
     
     tile_names_tile_urls_complete_array = fc.add_formatted_and_standard_tile_names_to_tile_names_time_urls(tile_names_tile_urls_complete_array)
     

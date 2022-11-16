@@ -19,13 +19,13 @@ def get_args_parse():
         description='This script records the annotator who has labeled each image')
     parser.add_argument('--tracker_file_path', type=str, default='outputs/tile_img_annotation_annotator.npy',
                         help='The file path of the numpy array that contains thes the image tracking')
-    parser.add_argument('--parent_directory', type=str, default = "C:\chip_allocation",
+    parser.add_argument('--parent_dir', type=str, default = "C:\chip_allocation",
                         help='path to parent directory, holding the annotation directories.')
     args = parser.parse_args()
     return args
     
 def main(args): 
-    img_anno = ap.img_path_anno_path(ap.list_of_sub_directories(args.parent_directory))
+    img_anno = ap.img_path_anno_path(ap.list_of_sub_directories(args.parent_dir))
     #print(img_anno)
     tracking_array = ap.reference_image_annotation_file_with_annotator(img_anno, args.tracker_file_path) #load existing and update 
     

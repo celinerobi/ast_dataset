@@ -35,7 +35,7 @@ from tqdm.notebook import tqdm_notebook
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--parent_directory', type = str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
+    parser.add_argument('--parent_dir', type = str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
                         help = 'path to parent directory; the directory of the storge space.')
     parser.add_argument('--complete_dataset_path', type = str, default = "verified/complete_dataset",
                         help = 'path to the verified complete dataset.')
@@ -44,10 +44,10 @@ def get_args_parse():
 
 def main(args):
     #specify folder that holds tiles in completed dataset
-    tiles_complete_dataset_path = os.path.join(args.parent_directory, args.complete_dataset_path, "tiles")
+    tiles_complete_dataset_path = os.path.join(args.parent_dir, args.complete_dataset_path, "tiles")
 
     #unique positive jpgs (file names with the file extension)
-    unique_positive_jpgs = fc.unique_positive_jpgs_from_parent_directory(args.parent_directory)
+    unique_positive_jpgs = fc.unique_positive_jpgs_from_parent_directory(args.parent_dir)
     
     image_characteristics = fc.image_characteristics(tiles_complete_dataset_path, unique_positive_jpgs)
 

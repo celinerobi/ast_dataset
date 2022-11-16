@@ -24,11 +24,11 @@ import data_eng.az_proc as ap
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--parent_directory', type=str, default=None,
+    parser.add_argument('--parent_dir', type=str, default=None,
                         help='path to parent directory, holding the annotation directory.')
-    parser.add_argument('--complete_dataset_directory', type=str, default=None,
+    parser.add_argument('--complete_dir', type=str, default=None,
                         help='path to complete dataset directory.')
-    parser.add_argument('--annotation_directory', type=str, default=None,
+    parser.add_argument('--annotation_dir', type=str, default=None,
                         help='Name of the folder containing the annotations for positive images of interests.')
     #parser.add_argument('--tiles_remaining', type=str, default=None,
     #                    help='The name of the numpy array specifying the tiles that remain to be annotated.')
@@ -38,12 +38,12 @@ def get_args_parse():
     return args
 
 def main(args): 
-    if args.parent_directory is not None:
-        ap.dataset_summary_assessment(ap.img_path_anno_path(ap.list_of_sub_directories(args.parent_directory)))   
+    if args.parent_dir is not None:
+        ap.dataset_summary_assessment(ap.img_path_anno_path(ap.list_of_sub_directories(args.parent_dir)))
         
-    if args.complete_dataset_directory is not None:
-        img_path = os.path.join(args.complete_dataset_directory, 'chips_positive')
-        anno_path = os.path.join(args.complete_dataset_directory, args.annotation_directory)
+    if args.complete_dir is not None:
+        img_path = os.path.join(args.complete_dir, 'chips_positive')
+        anno_path = os.path.join(args.complete_dir, args.annotation_dir)
         ap.dataset_summary_assessment(np.hstack((img_path,anno_path)), multiple = False)  
 
     #if args.tiles_remaining is not None and args.tiles_labeled is not None:

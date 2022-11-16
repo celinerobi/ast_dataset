@@ -19,7 +19,7 @@ import data_eng.az_proc as ap
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--parent_directory', type=str, default=None,
+    parser.add_argument('--parent_dir', type=str, default=None,
                         help='path to parent directory, holding the annotation directory.')
     parser.add_argument('--original', type=bool, default=False,
                         help='use original (True), or corrected (False) annotations')
@@ -33,8 +33,8 @@ def get_args_parse():
 def main(args):
     ### Get the subdirectories within the subdirectories (the folders from each of the allocations)
     sub_directories = list()
-    for sub_directory in ap.list_of_sub_directories(args.parent_directory):
-        for root,dirs,files in os.walk(sub_directory):
+    for sub_directory in ap.list_of_sub_directories(args.parent_dir):
+        for root, dirs, files in os.walk(sub_directory):
             if "chips_positive" in dirs:
                 sub_directories.append(root)
 
@@ -50,12 +50,12 @@ def main(args):
 
         #Functions to move the annotations + images into folders 
         dist = ap.annotator(sub_directory)
-        dist.state_dcc_directory(args.parent_directory)
+        dist.state_dcc_directory(args.parent_dir)
         dist.make_subdirectories()    
         annotations, images = dist.move_images_annotations_to_complete_dataset(args.complete_dir,
                                                                                args.include_tiles, args.original)
 
-        counter_annotations += annotations # count the number of annotations 
+        counter_annotations += annotations #count the number of annotations
         counter_images += images #count the number of images
         print(counter_annotations, counter_images) #print the counters
 

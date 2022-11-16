@@ -20,20 +20,20 @@ def get_args_parse():
                         help='path to dir to store all correct images.')
     parser.add_argument('--by_tile_correct_chips_wo_black_sq_dir', type=str, default=False,
                         help='path to directory correct chips without black pixels')
-    parser.add_argument('--param_directory', type=str, default=None,
+    parser.add_argument('--param_dir', type=str, default=None,
                         help='use original (True), or corrected (False) annotations')
     args = parser.parse_args()
     return args
 
 
 def main(args):
-    state_year_img_paths = fc.read_list(os.path.join(args.param_directory, "state_year_img_paths.json"))
-    state_year_xml_paths = fc.read_list(os.path.join(args.param_directory, "state_year_xml_paths.json"))
-    state_year_six_digit_idx_list = fc.read_list(os.path.join(args.param_directory,
+    state_year_img_paths = fc.read_list(os.path.join(args.param_dir, "state_year_img_paths.json"))
+    state_year_xml_paths = fc.read_list(os.path.join(args.param_dir, "state_year_xml_paths.json"))
+    state_year_six_digit_idx_list = fc.read_list(os.path.join(args.param_dir,
                                                               "state_year_six_digit_idx_list.json"))
-    standard_img_paths = fc.read_list(os.path.join(args.param_directory, "standard_img_paths.json"))
-    standard_xml_paths = fc.read_list(os.path.join(args.param_directory, "standard_xml_paths.json"))
-    yx_array = np.load(os.path.join(args.param_directory, "yx_array.npy"))
+    standard_img_paths = fc.read_list(os.path.join(args.param_dir, "standard_img_paths.json"))
+    standard_xml_paths = fc.read_list(os.path.join(args.param_dir, "standard_xml_paths.json"))
+    yx_array = np.load(os.path.join(args.param_dir, "yx_array.npy"))
     fc.remove_thumbs(args.by_tile_correct_chips_wo_black_sq_dir)
     correct_chips_wo_black_sq_paths = sorted(glob(args.by_tile_correct_chips_wo_black_sq_dir + "/*.jpg",
                                                   recursive=True))

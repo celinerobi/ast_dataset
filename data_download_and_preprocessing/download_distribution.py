@@ -50,25 +50,25 @@ import data_eng.az_proc as ap
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--parent_directory', type = str, default = "//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
-                        help = 'path to parent directory; the directory of the storge space.')
-    parser.add_argument('--annotation_directory', type = str, default = "verified/complete_dataset",
-                        help = 'path to the verified complete dataset.')
-    parser.add_argument('--number_of_tiles', type = str, default = 'outputs/tile_img_annotation_annotator.npy',
-                        help = 'The file path of the numpy array that contains the image tracking.')
-    parser.add_argument('--tiles_remaining', type = str, 
-                        default = "image_download_azure/tile_name_tile_url_complete_array.npy",
-                        help = 'The file path of the numpy array that contains the tile names and tile urls of the complete arrays.')
-    parser.add_argument('--tiles_labeled', type = str, 
-                        default = "image_download_azure/tile_name_tile_url_complete_array.npy",
-                        help = 'The file path of the numpy array that contains the tile names and tile urls of the complete arrays.')
+    parser.add_argument('--parent_dir', type=str, default="//oit-nas-fe13dc.oit.duke.edu//data_commons-borsuk//",
+                        help='path to parent directory; the directory of the storge space.')
+    parser.add_argument('--annotation_dir', type=str, default="verified/complete_dataset",
+                        help='path to the verified complete dataset.')
+    parser.add_argument('--number_of_tiles', type=str, default='outputs/tile_img_annotation_annotator.npy',
+                        help='The file path of the numpy array that contains the image tracking.')
+    parser.add_argument('--tiles_remaining', type=str,
+                        default="image_download_azure/tile_name_tile_url_complete_array.npy",
+                        help='The file path of the numpy array that contains the tile names and tile urls of the complete arrays.')
+    parser.add_argument('--tiles_labeled', type=str,
+                        default="image_download_azure/tile_name_tile_url_complete_array.npy",
+                        help='The file path of the numpy array that contains the tile names and tile urls of the complete arrays.')
 
     args = parser.parse_args()
     return args
 
 def main(args):    
-    dist = ap.annotator(args.annotation_directory) #create the processing class
-    dist.state_dcc_directory(args.parent_directory)
+    dist = ap.annotator(args.annotation_dir) #create the processing class
+    dist.state_dcc_directory(args.parent_dir)
     
     dist.number_of_tiles(args.number_of_tiles)
     
