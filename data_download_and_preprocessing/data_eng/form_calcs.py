@@ -424,7 +424,7 @@ def transform_point_utm_to_wgs84(utm_proj, utm_xcoord, utm_ycoord):
 ###################################################################################################################
 ##########################   Create dataframe of Image and Tile Characteristics  ##################################
 ###################################################################################################################   
-def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, tile_name_tile_url, verified_positive_jpgs):
+def image_tile_characteristics(images_and_xmls_by_tile_path, tile_dir):#, tile_name_tile_url, verified_positive_jpgs):
     tile_names_by_tile = []
     tile_paths_by_tile = []
     #tile_urls_by_tile = []
@@ -477,7 +477,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tiles_dir):#, tile_
         positive_images = os.listdir(positive_image_dir)
         positive_xmls = os.listdir(positive_xml_dir)
         #read in tile
-        tile_path = os.path.join(tiles_dir, tile_name + ".tif")
+        tile_path = os.path.join(tile_dir, tile_name + ".tif")
         #obtain tile url
         #tile name/path/urls by tile
         tile_names_by_tile.append(tile_name)
@@ -648,12 +648,12 @@ def add_objects(xml_directory, tile_name, obj_class,
     et.indent(tree, space="\t", level=0)
     tree.write(os.path.join(xml_directory, tile_name +".xml"))   
     
-def generate_tile_xmls(images_and_xmls_by_tile_path, tiles_dir, tiles_xml_path, item_dim):
+def generate_tile_xmls(images_and_xmls_by_tile_path, tile_dir, tiles_xml_path, item_dim):
     folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
         tile_name_ext = tile_name + ".tif"
         #get tile dimensions ##replace with information from tile characteristics
-        da = rioxarray.open_rasterio(os.path.join(tiles_dir, tile_name_ext))
+        da = rioxarray.open_rasterio(os.path.join(tile_dir, tile_name_ext))
         tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
         #specify image/xml paths for each tile
         positive_image_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive")
@@ -708,10 +708,12 @@ def reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path):
         width = int(obj_xmax) - int(obj_xmin)
         height = int(obj_ymax) - int(obj_ymin)
         if (int(obj.find('difficult').text) == 0) and (int(obj.find('truncated').text) == 0): 
-            #if a closed roof tank is less than or equal to the narrow closed roof tank threshold than reclassify as  narrow closed roof tank
+            # if a closed roof tank is less than or equal to the narrow closed roof tank threshold
+            # than reclassify as  narrow closed roof tank
             if (name == "closed_roof_tank") and (width <= 15) and (height <= 15): 
                 name = "narrow_closed_roof_tank"
-            #if a narrow closed roof tank is greater than the closed roof tank threshold than reclassify as closed roof tank
+            # if a narrow closed roof tank is greater than the closed roof tank threshold
+            # than reclassify as closed roof tank
             if (name == "narrow_closed_roof_tank") and (width > 15) and (height > 15):
                 name = "closed_roof_tank"
     
