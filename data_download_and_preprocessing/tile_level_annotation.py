@@ -60,11 +60,13 @@ def get_args_parse():
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
     parser.add_argument('--complete_dir', type=str, default=None,
                         help='path to complete dataset directory.')
+    parser.add_argument('--annotation_dir', type=str, default="chips_positive_corrected_xml",
+                        help="name of folder in complete dataset directory that contains annotations")
     parser.add_argument('--tile_dir', type=str, default=None,
                         help='path to directory holding tiles.')
     parser.add_argument('--tile_level_annotation_dir', type=str, default=None,
                         help='path to directory which holds tile level annotation and related files.')
-    parser.add_argument('--tile_level_annotation_dataset_filename', type=str, default=None,
+    parser.add_argument('--tile_level_annotation_dataset_filename', type=str, default="tile_level_annotation",
                         help='File name of tile level annotation')
     parser.add_argument('--item_dim', type=int, default=int(512),
                         help='Dimensions of image (assumed sq)')
@@ -79,7 +81,7 @@ def get_args_parse():
 def main(args):
     # Reclassify narrow closed roof tanks and closed roof tanks by size
     # specify folder that holds tiles in completed dataset
-    xml_paths = glob(args.complete_dir + "/**/*.xml", recursive=True)
+    xml_paths = glob(os.path.join(args.complete_dir, args.annotation_dir) + "/*.xml", recursive=True)
     for xml_path in xml_paths:
         fc.reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path)
 
