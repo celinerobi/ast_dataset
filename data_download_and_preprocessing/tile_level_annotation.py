@@ -15,6 +15,7 @@ import tempfile
 import warnings
 import urllib
 import shutil
+import pickle
 # import requests
 from PIL import Image
 from io import BytesIO
@@ -23,14 +24,12 @@ from tqdm.notebook import tqdm_notebook
 from skimage.metrics import structural_similarity as compare_ssim
 import random
 import numpy as np
-import psutil
 import fiona  # must be import before geopandas
 import geopandas as gpd
 import rasterio
 import rioxarray
 import re
 import rtree
-import pickle
 import pyproj
 import shapely
 from shapely.geometry import Polygon, Point
