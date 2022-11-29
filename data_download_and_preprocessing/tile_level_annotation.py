@@ -21,7 +21,6 @@ from io import BytesIO
 import tqdm
 from tqdm.notebook import tqdm_notebook
 from skimage.metrics import structural_similarity as compare_ssim
-import imutils
 import random
 import numpy as np
 import psutil

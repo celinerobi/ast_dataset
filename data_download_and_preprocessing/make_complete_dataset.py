@@ -50,7 +50,7 @@ def main(args):
 
         #Functions to move the annotations + images into folders 
         dist = ap.annotator(sub_directory)
-        dist.state_dcc_directory(args.squeue -)
+        dist.state_dcc_directory(args.parent_directory)
         dist.make_subdirectories()    
         annotations, images = dist.move_images_annotations_to_complete_dataset(args.complete_dir,
                                                                                args.include_tiles, args.original)
