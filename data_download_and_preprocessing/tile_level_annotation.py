@@ -72,20 +72,18 @@ def get_args_parse():
                         help='The maximum pixel distance between bbox adjacent images, to merge')
     parser.add_argument('--state_gpd_path', type=str, default=None,
                         help='Path to dataset of state boundaries')
+    parser.add_argument('--xml_folder_name', type=str, default="chips_positive_corrected_xml",
+                        help="name of folder in complete dataset directory that contains annotations")
     args = parser.parse_args()
     return args
 
 
 def main(args):
-    # Reclassify narrow closed roof tanks and closed roof tanks by size
-    # specify folder that holds tiles in completed dataset
-    xml_paths = glob(os.path.join(args.complete_dir, args.annotation_dir) + "/*.xml", recursive=True)
-    for xml_path in xml_paths:
-        fc.reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path)
 
     # Generate table of characteristics for tiles/images
     # change where they are written
-    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.complete_dir, args.tile_dir)
+    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.complete_dir, args.tile_dir,
+                                                                                args.xml_folder_name)
 
     # Generate tile level XMLs
     tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")

@@ -424,7 +424,9 @@ def transform_point_utm_to_wgs84(utm_proj, utm_xcoord, utm_ycoord):
 ###################################################################################################################
 ##########################   Create dataframe of Image and Tile Characteristics  ##################################
 ###################################################################################################################   
-def image_tile_characteristics(images_and_xmls_by_tile_path, tile_dir):#, tile_name_tile_url, verified_positive_jpgs):
+
+
+def image_tile_characteristics(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name): #, tile_name_tile_url, verified_positive_jpgs):
     tile_names_by_tile = []
     tile_paths_by_tile = []
     #tile_urls_by_tile = []
@@ -467,12 +469,12 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tile_dir):#, tile_n
     image_paths  = []
     xml_paths = []
     item_dim = int(512)
-    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
+    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_dir)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
         #specify image/xml paths for each tile
-        positive_image_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive")
+        positive_image_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive")
         remove_thumbs(positive_image_dir)
-        positive_xml_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive_xml")
+        positive_xml_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, xml_folder_name)
         #load a list of images/xmls for each tile
         positive_images = os.listdir(positive_image_dir)
         positive_xmls = os.listdir(positive_xml_dir)
@@ -546,7 +548,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_path, tile_dir):#, tile_n
             max_lon_chip.append(max_lon) #SE (min: Bottom right) 
             max_lat_chip.append(max_lat) #SE (min: Bottom right)
     tile_characteristics = pd.DataFrame(data={'tile_name': tile_names_by_tile, 'tile_path': tile_paths_by_tile, #'tile_url': tile_urls_by_tile, 
-                        'tile_heights': tile_heights, 'tile_widths': tile_widths, 'tile_bands': tile_depths, 'min_utmx': min_utmx_tile, 'min_utmy': min_utmy_tile, 
+                     'tile_heights': tile_heights, 'tile_widths': tile_widths, 'tile_bands': tile_depths, 'min_utmx': min_utmx_tile, 'min_utmy': min_utmy_tile,
                         'max_utmx': max_utmx_tile, 'max_utmy': max_utmy_tile, 'utm_projection': utm_projection_tile,
                         'min_lon_tile': min_lon_tile,'min_lat_tile': min_lat_tile,'max_lon_tile': max_lon_tile,'max_lat_tile': max_lat_tile})
 
@@ -648,16 +650,16 @@ def add_objects(xml_directory, tile_name, obj_class,
     et.indent(tree, space="\t", level=0)
     tree.write(os.path.join(xml_directory, tile_name +".xml"))   
     
-def generate_tile_xmls(images_and_xmls_by_tile_path, tile_dir, tiles_xml_path, item_dim):
-    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_path)
+def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, tiles_xml_path, item_dim):
+    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_dir)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
         tile_name_ext = tile_name + ".tif"
         #get tile dimensions ##replace with information from tile characteristics
         da = rioxarray.open_rasterio(os.path.join(tile_dir, tile_name_ext))
         tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
         #specify image/xml paths for each tile
-        positive_image_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive")
-        positive_xml_dir = os.path.join(images_and_xmls_by_tile_path, tile_name, "chips_positive_xml")
+        positive_image_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive")
+        positive_xml_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive_xml")
         #load a list of images/xmls for each tile
         positive_images = os.listdir(positive_image_dir)
         positive_xmls = os.listdir(positive_xml_dir)

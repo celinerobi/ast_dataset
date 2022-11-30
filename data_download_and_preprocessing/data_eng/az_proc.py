@@ -613,7 +613,7 @@ class annotator:
         Args:
             file_loc (str): The file location of the spreadsheet
             include_tiles (bool; default = False): Specifies whether the full tiles should be moved
-            original  include_tiles (bool; default = True): Specifies whether the original annotation in chips positive or the corrected 
+            original include_tiles (bool; default = True): Specifies whether the original annotation in chips positive or the corrected
                                                           annotation in chips_positive_xml should be used
 
         Returns:
