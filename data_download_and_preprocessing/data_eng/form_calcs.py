@@ -719,7 +719,7 @@ def reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path):
     
     tree.write(os.path.join(xml_path))
     
-def correct_inconsistent_labels_xml(xml_dir):
+def correct_inconsistent_labels_xml(xml_path, corrected_xml_path):
     #Create a list of the possible names that each category may take 
     correctly_formatted_object = ["closed_roof_tank","narrow_closed_roof_tank",
                                   "external_floating_roof_tank","sedimentation_tank",
@@ -746,24 +746,23 @@ def correct_inconsistent_labels_xml(xml_dir):
                    "silo": "undefined_object" }
 
     #"enumerate each image" This chunk is actually just getting the paths for the images and annotations
-    for xml_file in os.listdir(xml_dir):
-        # use the parse() function to load and parse an XML file
-        tree = et.parse(os.path.join(xml_dir, xml_file))
-        root = tree.getroot()         
-        
-        for obj in root.iter('object'):
-            for name in obj.findall('name'):
-                if name.text not in correctly_formatted_object:
-                    name.text = object_dict[name.text]
+    # use the parse() function to load and parse an XML file
+    tree = et.parse(xml_path)
+    root = tree.getroot()
 
-            if int(obj.find('difficult').text) == 1:
-                obj.find('truncated').text = '1'
-                obj.find('difficult').text = '1'
-            if int(obj.find('truncated').text) == 1:
-                obj.find('truncated').text = '1'
-                obj.find('difficult').text = '1'
+    for obj in root.iter('object'):
+        for name in obj.findall('name'):
+            if name.text not in correctly_formatted_object:
+                name.text = object_dict[name.text]
 
-        tree.write(os.path.join(xml_dir, xml_file))       
+        if int(obj.find('difficult').text) == 1:
+            obj.find('truncated').text = '1'
+            obj.find('difficult').text = '1'
+        if int(obj.find('truncated').text) == 1:
+            obj.find('truncated').text = '1'
+            obj.find('difficult').text = '1'
+
+    tree.write(corrected_xml_path)
 
 ###################################################################################################################
 ####################################     Merge tile level annotations   ###########################################

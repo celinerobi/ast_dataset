@@ -1,5 +1,5 @@
 """
-Correct inconsistent labels
+Correct inconsistent labels and reclassify
 """
 
 """
@@ -8,7 +8,7 @@ Import Packages
 import shutil
 import xml.etree.ElementTree as et
 import argparse
-
+import tqdm
 import os
 import sys
 from PIL import Image
@@ -18,35 +18,29 @@ import data_eng.az_proc as ap
 
 def get_args_parse():
     parser = argparse.ArgumentParser(
-        description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
+        description='This script adds a subdirectory of corrected xmls to correct possible inconsistent labels and '
+                    'reclassify tanks based on tanks size')
     parser.add_argument('--parent_dir', type=str, default=None,
                         help='path to parent directory, holding the annotation sub directories.')
-    parser.add_argument('--complete_dir', type=str, default=None,
-                        help='path to complete dataset directory.')
+    parser.add_argument('--orig_xml_folder_name', type=str, default="chips_positive_xml",
+                        help="name of folder in complete dataset directory that contains annotations")
+    parser.add_argument('--corrected_xml_folder_name', type=str, default="chips_positive_corrected_xml",
+                        help="name of folder in complete dataset directory that contains annotations")
     args = parser.parse_args()
     return args
 
-def main(args): 
-    if args.parent_dir is not None:
-        #get the subdirectories within the subdirectories (the folders from each of the allocations)
-        sub_directories = list()
-        for annotator_directory in ap.list_of_sub_directories(args.parent_dir):
-            for root, dirs, files in os.walk(annotator_directory):
-                if "chips" in dirs: #excludes the annotations from Jackson that need to be reformated
-                    sub_directories.append(root)
+def main(args):
+    tile_names = os.listdir(args.parent_dir)
+    #Correct inconsistent labfolders_of_images_xmls_by_tileels
+    for tile_name in tqdm.tqdm(tile_names):  # iterate over tile folders
+        orig_xml_dir = os.path.join(args.parent_dir, tile_name, args.orig_xml_folder_name)
+        corrected_xml_dir = os.path.join(args.parent_dir, tile_name, args.corrected_xml_folder_name)
 
-        for i in range(len(sub_directories)):
-            sub_directory = sub_directories[i].rsplit("/",1)[1] #get the sub folders for each annotator
-            dist = ap.annotator(sub_directory)
-            dist.state_dcc_directory(args.parent_dir)
-            dist.make_subdirectories()
-            dist.correct_inconsistent_labels_xml()   
-            
-    if args.complete_dir is not None:
-        dist = ap.annotator(os.path.basename(args.complete_dir))
-        dist.state_dcc_directory(os.path.dirname(args.complete_dir))
-        dist.make_subdirectories()
-        dist.correct_inconsistent_labels_xml()   
+        for xml in os.listdir(orig_xml_dir):
+            orig_xml_path = os.path.join(orig_xml_dir, xml)
+            corrected_xml_path = os.path.join(corrected_xml_dir, xml)
+            fc.correct_inconsistent_labels_xml(orig_xml_path, corrected_xml_path)
+            fc.reclassify_narrow_closed_roof_and_closed_roof_tanks(corrected_xml_path)
 
 if __name__ == '__main__':
     ### Get the arguments 
