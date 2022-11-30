@@ -21,7 +21,7 @@ def get_args_parse():
         description='This script adds a subdirectory of corrected xmls to correct possible inconsistent labels and '
                     'reclassify tanks based on tanks size')
     parser.add_argument('--parent_dir', type=str, default=None,
-                        help='path to parent directory, holding the annotation sub directories.')
+                        help='path to parent directory, holding the img/annotation sub directories.')
     parser.add_argument('--orig_xml_folder_name', type=str, default="chips_positive_xml",
                         help="name of folder in complete dataset directory that contains annotations")
     parser.add_argument('--corrected_xml_folder_name', type=str, default="chips_positive_corrected_xml",

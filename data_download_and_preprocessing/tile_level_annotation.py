@@ -56,8 +56,8 @@ import data_eng.form_calcs as fc
 def get_args_parse():
     parser = argparse.ArgumentParser(
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
-    parser.add_argument('--complete_dir', type=str, default=None,
-                        help='path to complete dataset directory.')
+    parser.add_argument('--parent_dir', type=str, default=None,
+                        help='path to parent directory, holding the img/annotation sub directories.')
     parser.add_argument('--annotation_dir', type=str, default="chips_positive_corrected_xml",
                         help="name of folder in complete dataset directory that contains annotations")
     parser.add_argument('--tile_dir', type=str, default=None,
@@ -82,13 +82,13 @@ def main(args):
 
     # Generate table of characteristics for tiles/images
     # change where they are written
-    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.complete_dir, args.tile_dir,
+    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
                                                                                 args.xml_folder_name)
 
     # Generate tile level XMLs
     tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
     os.makedirs(tiles_xml_dir, exist_ok=True)
-    fc.generate_tile_xmls(args.complete_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
+    fc.generate_tile_xmls(args.parent_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
 
     # Merge neighboring bounding boxes within each tile
     # References:
@@ -99,7 +99,7 @@ def main(args):
     # Add in state
     tile_database = fc.identify_state_name_for_each_state(args.state_gpd_path, tile_database)
     # check issues in state list
-    print(len(state_list[state_list==None]))
+    #print(len(state_list[state_list==None]))
     # state_list = state_list[state_list==None]
     # np.unique(state_list)
 

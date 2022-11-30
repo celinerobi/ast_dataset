@@ -469,8 +469,8 @@ def image_tile_characteristics(images_and_xmls_by_tile_dir, tile_dir, xml_folder
     image_paths  = []
     xml_paths = []
     item_dim = int(512)
-    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_dir)
-    for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
+    tile_names = os.listdir(images_and_xmls_by_tile_dir)
+    for tile_name in tqdm.tqdm(tile_names):
         #specify image/xml paths for each tile
         positive_image_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive")
         remove_thumbs(positive_image_dir)
