@@ -739,11 +739,12 @@ def correct_inconsistent_labels_xml(xml_path, corrected_xml_path):
                    "water_tower": "water_tower",
                    "water_tower ": "water_tower",
                    'water_towe': "water_tower",
-                   "spherical_tank":"spherical_tank",
-                   'sphere':"spherical_tank",
-                   'spherical tank':"spherical_tank",
+                   "spherical_tank": "spherical_tank",
+                   'sphere': "spherical_tank",
+                   'spherical tank': "spherical_tank",
                    "undefined_object": "undefined_object",
-                   "silo": "undefined_object" }
+                   "unknown_object": "undefined_object",
+                   "silo": "undefined_object"}
 
     #"enumerate each image" This chunk is actually just getting the paths for the images and annotations
     # use the parse() function to load and parse an XML file
