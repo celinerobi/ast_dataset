@@ -1,21 +1,25 @@
 """
 Functions to process, format, and conduct calculations on the annotated or verified dataset
 """
+print(help("modules"))
+
 # Standard packages
 #from __future__ import print_function
 import warnings
 import urllib
 import shutil
 import os
-import math 
-import json
-import tqdm
+import math
 from glob import glob
+import json
 
 import xml.dom.minidom
 from xml.dom.minidom import parseString
 import xml.etree.ElementTree as et
 from xml.dom import minidom
+
+import tqdm
+
 
 #install standard
 import numpy as np
@@ -38,7 +42,7 @@ from skimage.metrics import structural_similarity as compare_ssim
 #import imutils
 #import psutil
 #Parsing/Modifying XML
-from lxml.etree import Element,SubElement,tostring
+from lxml.etree import Element, SubElement, tostring
 
 import data_eng.az_proc as ap
 
