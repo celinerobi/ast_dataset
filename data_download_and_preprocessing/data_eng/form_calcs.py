@@ -581,12 +581,12 @@ def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year,
     root.insert(3, resolution)
     year = et.Element("year") #add year to xml
     year.text = tile_year #year
-    root.insert(4,year)
+    root.insert(4, year)
     source = et.Element("source") #add database to xml
     database = et.Element("database")
     database.text = "Tile Level Annotation" #
     source.insert(0, database)
-    root.insert(5,source)
+    root.insert(5, source)
     size = et.Element("size") #add size to xml
     width = et.Element("width")
     width.text = str(tile_width) #width
@@ -597,7 +597,7 @@ def create_tile_xml(tile_name, xml_directory, tile_resolution, tile_year,
     depth = et.Element("depth")
     depth.text = str(tile_band) #depth
     size.insert(2, depth)
-    root.insert(6,size)
+    root.insert(6, size)
     tree = et.ElementTree(root)
     et.indent(tree, space="\t", level=0)
     #tree.write("filename.xml")
@@ -650,7 +650,7 @@ def add_objects(xml_directory, tile_name, obj_class,
     et.indent(tree, space="\t", level=0)
     tree.write(os.path.join(xml_directory, tile_name +".xml"))   
     
-def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, tiles_xml_path, item_dim):
+def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, tiles_xml_path, item_dim):
     folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_dir)
     for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
         tile_name_ext = tile_name + ".tif"
@@ -659,7 +659,7 @@ def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, tiles_xml_path, it
         tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
         #specify image/xml paths for each tile
         positive_image_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive")
-        positive_xml_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive_xml")
+        positive_xml_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, xml_folder_name)
         #load a list of images/xmls for each tile
         positive_images = os.listdir(positive_image_dir)
         positive_xmls = os.listdir(positive_xml_dir)
@@ -693,35 +693,10 @@ def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, tiles_xml_path, it
 #################################################################################################################
 ####################################     Correct object names in xmls      ######################################
 #################################################################################################################
-def reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path):
-    """ Reclassify Narrow Closed Roof and Closed Roof Tanks
-    """
-    #load each xml
-    class_ob = []
-    tree = et.parse(xml_path)
-    root = tree.getroot()
-    for obj in root.iter('object'):
-        name = obj.find("name").text 
-        xmlbox = obj.find('bndbox') #get the bboxes
-        obj_xmin = xmlbox.find('xmin').text
-        obj_ymin = xmlbox.find('ymin').text
-        obj_xmax = xmlbox.find('xmax').text
-        obj_ymax = xmlbox.find('ymax').text
-        width = int(obj_xmax) - int(obj_xmin)
-        height = int(obj_ymax) - int(obj_ymin)
-        if (int(obj.find('difficult').text) == 0) and (int(obj.find('truncated').text) == 0): 
-            # if a closed roof tank is less than or equal to the narrow closed roof tank threshold
-            # than reclassify as  narrow closed roof tank
-            if (name == "closed_roof_tank") and (width <= 15) and (height <= 15): 
-                name = "narrow_closed_roof_tank"
-            # if a narrow closed roof tank is greater than the closed roof tank threshold
-            # than reclassify as closed roof tank
-            if (name == "narrow_closed_roof_tank") and (width > 15) and (height > 15):
-                name = "closed_roof_tank"
-    
-    tree.write(os.path.join(xml_path))
-    
+
+
 def correct_inconsistent_labels_xml(xml_path, corrected_xml_path):
+
     #Create a list of the possible names that each category may take 
     correctly_formatted_object = ["closed_roof_tank","narrow_closed_roof_tank",
                                   "external_floating_roof_tank","sedimentation_tank",
@@ -767,6 +742,69 @@ def correct_inconsistent_labels_xml(xml_path, corrected_xml_path):
 
     tree.write(corrected_xml_path)
 
+
+def reformat_xml_for_compiled_dataset(xml_path):
+    """ reformat xml files for rechipped images to include resolution, year, updated filename, and updated path.
+    Args:
+    xml_path(str): path to xml file
+
+    https://docs.python.org/3/library/xml.etree.elementtree.html
+    https://stackoverflow.com/questions/28813876/how-do-i-get-pythons-elementtree-to-pretty-print-to-an-xml-file
+    https://stackoverflow.com/questions/28813876/how-do-i-get-pythons-elementtree-to-pretty-print-to-an-xml-file
+    """
+    # load xml
+    chip_name = os.path.splitext(os.path.basename(xml_path))[0]
+    tree = et.parse(os.path.join(xml_path))
+    root = tree.getroot()
+    # add resolution to xml
+    resolution = et.Element("resolution")
+    resolution.text = chip_name.split("_")[4]  # resolution
+    et.indent(tree, space="\t", level=0)
+    root.insert(3, resolution)
+    # add year to xml
+    capture_date = et.Element("capture_date")
+    capture_date.text = chip_name.split("_")[5]  # year.month.day?
+    et.indent(tree, space="\t", level=0)
+    root.insert(4, capture_date)
+    # correct spacing for source (dataset name)
+    et.indent(tree, space="\t", level=0)
+    # correct filename and path to formatting with row/col coordinates
+    for filename in root.iter('filename'):
+        filename.text = chip_name
+    for path in root.iter('path'):
+        path.text = xml_path
+    tree.write(xml_path)
+
+
+def reclassify_narrow_closed_roof_and_closed_roof_tanks(xml_path):
+    """ Reclassify Narrow Closed Roof and Closed Roof Tanks
+    Args:
+    xml_path(str): path to xml file
+    """
+    # load each xml
+    class_ob = []
+    tree = et.parse(xml_path)
+    root = tree.getroot()
+    for obj in root.iter('object'):
+        name = obj.find("name").text
+        xmlbox = obj.find('bndbox')  # get the bboxes
+        obj_xmin = xmlbox.find('xmin').text
+        obj_ymin = xmlbox.find('ymin').text
+        obj_xmax = xmlbox.find('xmax').text
+        obj_ymax = xmlbox.find('ymax').text
+        width = int(obj_xmax) - int(obj_xmin)
+        height = int(obj_ymax) - int(obj_ymin)
+        if (int(obj.find('difficult').text) == 0) and (int(obj.find('truncated').text) == 0):
+            # if a closed roof tank is less than or equal to the narrow closed roof tank threshold
+            # than reclassify as  narrow closed roof tank
+            if (name == "closed_roof_tank") and (width <= 15) and (height <= 15):
+                name = "narrow_closed_roof_tank"
+            # if a narrow closed roof tank is greater than the closed roof tank threshold
+            # than reclassify as closed roof tank
+            if (name == "narrow_closed_roof_tank") and (width > 15) and (height > 15):
+                name = "closed_roof_tank"
+
+    tree.write(os.path.join(xml_path))
 ###################################################################################################################
 ####################################     Merge tile level annotations   ###########################################
 ###################################################################################################################               
@@ -1222,46 +1260,6 @@ def incorrectly_chipped_image_and_correctly_chipped_names(incorrectly_chipped_im
     chip_name_correct_chip_names = np.array(chip_name_correct_chip_names)
     return(ys,xs,chip_name_incorrectly_chip_names, chip_name_correct_chip_names)
 
-def reformat_xmls_for_rechipped_images(xml_directory, image_in_tile, correct_xml_name, correct_jpg_name, chips_positive_xml_dir_path):
-    """ reformat xml files for rechipped images to include resolution, year, updated filename, and updated path. 
-    Args:
-    xml_directory(str): directory holding xmls
-    image_in_tile(str): path to image
-    correct_xml_name: correct name for xml
-    correct_jpg_name: correct name for jpgs
-    chips_positive_xml_dir_path(str): new path for xml
-    
-    https://docs.python.org/3/library/xml.etree.elementtree.html
-    https://stackoverflow.com/questions/28813876/how-do-i-get-pythons-elementtree-to-pretty-print-to-an-xml-file
-    https://stackoverflow.com/questions/28813876/how-do-i-get-pythons-elementtree-to-pretty-print-to-an-xml-file
-    """
-    #load xml
-    formatted_chip_name_wo_ext = os.path.splitext(os.path.basename(image_in_tile))[0]
-    tree = et.parse(os.path.join(xml_directory, formatted_chip_name_wo_ext +".xml"))
-    root = tree.getroot() 
-    
-    #add resolution to xml
-    resolution = et.Element("resolution")
-    resolution.text = formatted_chip_name_wo_ext.split("_")[1] #resolution
-    et.indent(tree, space="\t", level=0)
-    root.insert(3, resolution)
-    
-    #add year to xml
-    year = et.Element("year")
-    year.text = formatted_chip_name_wo_ext.split("_")[2]#year
-    et.indent(tree, space="\t", level=0)
-    root.insert(4,year)
-    
-    #correct spacing for source (dataset name)
-    et.indent(tree, space="\t", level=0)
-    
-    #correct filename and path to formatting with row/col coordinates
-    for filename in root.iter('filename'):
-        filename.text = correct_xml_name
-    for path in root.iter('path'):
-        path.text = os.path.join(xml_directory, correct_jpg_name)
-
-    tree.write(os.path.join(chips_positive_xml_dir_path, correct_xml_name))       
 
 def copy_rename_labeled_images_xmls(xml_directory, images_in_tile, incorrectly_chipped_images_path, chips_positive_dir_path,
                                     chips_positive_xml_dir_path, chip_name_incorrectly_chip_names, chip_name_correct_chip_names, 
@@ -1278,7 +1276,7 @@ def copy_rename_labeled_images_xmls(xml_directory, images_in_tile, incorrectly_c
     multiple_annotations_images: list of images with multiple annotations in a given folder
     black_images_with_annotations: list of black images with annotations
     Return:
-    ultiple_annotations_images, black_images_with_annotations
+    multiple_annotations_images, black_images_with_annotations
     """
     for image_in_tile in images_in_tile:
         #get the standard image name

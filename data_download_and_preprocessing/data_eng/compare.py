@@ -199,6 +199,9 @@ def copy_and_replace_images_xml(img_name, img_path, xml_path, new_dir):
     new_xml_path = os.path.join(new_dir, "chips_positive_xml", img_name + ".xml")
     shutil.copy(xml_path, new_xml_path)  # destination
 
+    fc.reformat_xmls_for_rechipped_images(xml_directory, image_in_tile, correct_xml_name, correct_jpg_name,
+                                          chips_positive_xml_dir_path)
+
 
 def compare_images(t_2_chip, labeled_img, scores):
     """ For a given tile, create a directory to store verified images and chip and store correct image

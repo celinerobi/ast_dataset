@@ -82,8 +82,8 @@ def main(args):
 
     # Generate table of characteristics for tiles/images
     # change where they are written
-    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
-                                                                                args.xml_folder_name)
+    #tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
+    #                                                                            args.xml_folder_name)
 
     # Generate tile level XMLs
     tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
