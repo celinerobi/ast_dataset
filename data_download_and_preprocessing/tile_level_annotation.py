@@ -86,25 +86,25 @@ def main(args):
     #                                                                            args.xml_folder_name)
 
     # Generate tile level XMLs
-    tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
-    os.makedirs(tiles_xml_dir, exist_ok=True)
-    fc.generate_tile_xmls(args.parent_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
+    #tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
+    #os.makedirs(tiles_xml_dir, exist_ok=True)
+    #fc.generate_tile_xmls(args.parent_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
 
     # Merge neighboring bounding boxes within each tile
     # References:
     # https: // answers.opencv.org / question / 231263 / merging - nearby - rectanglesedited /
     # https: // stackoverflow.com / questions / 55593506 / merge - the - bounding - boxes - near - by - into - one
-    tile_database = fc.merge_tile_annotations(tile_characteristics, tiles_xml_dir, distance_limit=args.distance_limit)
+    #tile_database = fc.merge_tile_annotations(tile_characteristics, tiles_xml_dir, distance_limit=args.distance_limit)
 
     # Add in state
-    tile_database = fc.identify_state_name_for_each_state(args.state_gpd_path, tile_database)
+    #tile_database = fc.identify_state_name_for_each_state(args.state_gpd_path, tile_database)
     # check issues in state list
     #print(len(tile_database[state_list==None]))
     # state_list = state_list[state_list==None]
     # np.unique(state_list)
 
     # Save tile dabasebase
-    fc.write_gdf(tile_database, args.tile_level_annotation_dir, args.tile_level_annotation_dataset_filename)
+    #fc.write_gdf(tile_database, args.tile_level_annotation_dir, args.tile_level_annotation_dataset_filename)
 
 
 if __name__ == '__main__':
