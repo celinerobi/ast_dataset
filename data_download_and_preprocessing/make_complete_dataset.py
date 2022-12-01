@@ -27,6 +27,8 @@ def get_args_parse():
                         help='include tiles (False), or do not include tiles (True) annotations')
     parser.add_argument('--complete_dir', type=str, default=False,
                         help='Path to directory to store complete dataset')
+    parser.add_argument('--xml_folder_name', type=str, default="chips_positive_corrected_xml",
+                        help="name of folder in complete dataset directory that contains annotations")
     args = parser.parse_args()
     return args
 
@@ -52,8 +54,8 @@ def main(args):
         dist = ap.annotator(sub_directory)
         dist.state_dcc_directory(args.parent_directory)
         dist.make_subdirectories()    
-        annotations, images = dist.move_images_annotations_to_complete_dataset(args.complete_dir,
-                                                                               args.include_tiles, args.original)
+        annotations, images = dist.move_images_annotations_to_complete_dataset(args.complete_dir, args.include_tiles,
+                                                                               args.original, args.xml_folder_name)
 
         counter_annotations += annotations #count the number of annotations
         counter_images += images #count the number of images
