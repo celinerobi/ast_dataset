@@ -445,7 +445,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_dir, tile_dir, xml_folder
     utm_projection_tile = [] 
 
     min_lon_tile = [] #NW_coordinates
-    min_lat_tile = []  #NW_coordinates
+    min_lat_tile = [] #NW_coordinates
     max_lon_tile = [] #SE_coordinates
     max_lat_tile = [] #SE_coordinates
 
@@ -470,7 +470,7 @@ def image_tile_characteristics(images_and_xmls_by_tile_dir, tile_dir, xml_folder
 
     row_indicies = []
     col_indicies = []
-    image_paths  = []
+    image_paths = []
     xml_paths = []
     item_dim = int(512)
     tile_names = os.listdir(images_and_xmls_by_tile_dir)
@@ -654,9 +654,9 @@ def add_objects(xml_directory, tile_name, obj_class,
     et.indent(tree, space="\t", level=0)
     tree.write(os.path.join(xml_directory, tile_name +".xml"))   
     
-def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, tiles_xml_path, item_dim):
-    folders_of_images_xmls_by_tile = os.listdir(images_and_xmls_by_tile_dir)
-    for tile_name in tqdm.tqdm(folders_of_images_xmls_by_tile):
+def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, tiles_xml_dir, item_dim):
+    tile_names = os.listdir(images_and_xmls_by_tile_dir)
+    for tile_name in tqdm.tqdm(tile_names):
         tile_name_ext = tile_name + ".tif"
         #get tile dimensions ##replace with information from tile characteristics
         da = rioxarray.open_rasterio(os.path.join(tile_dir, tile_name_ext))
@@ -683,7 +683,7 @@ def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, t
             if index == 0:
                 resolution = root.find('resolution').text
                 year = root.find('year').text
-                create_tile_xml(tile_name, tiles_xml_path, resolution, year, 
+                create_tile_xml(tile_name, tiles_xml_dir, resolution, year,
                                 tile_width, tile_height, tile_band)
             #add the bounding boxes
             for obj in root.iter('object'):
@@ -692,7 +692,7 @@ def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, t
                 obj_xmax = str(int(xmlbox.find('xmax').text) + minx)
                 obj_ymin = str(int(xmlbox.find('ymin').text) + miny)
                 obj_ymax = str(int(xmlbox.find('ymax').text) + miny)
-                add_objects(tiles_xml_path, tile_name, obj.find('name').text, obj.find('truncated').text, 
+                add_objects(tiles_xml_dir, tile_name, obj.find('name').text, obj.find('truncated').text,
                             obj.find('difficult').text, chip_name, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
 #################################################################################################################
 ####################################     Correct object names in xmls      ######################################
@@ -914,7 +914,7 @@ def calculate_diameter(bbox, resolution = 0.6):
     return(diameter)
 
 def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list = None, 
-                           distance_limit = 5):
+                           distance_limit=5):
     # https://stackoverflow.com/questions/55593506/merge-the-bounding-boxes-near-by-into-one
     #specify tiles_xml_list
     if tiles_xml_list is None: #if tiles_xml_list not provided, specify the tiles xml list

@@ -8,7 +8,7 @@ Import Packages
 import shutil
 import xml.etree.ElementTree as et
 import argparse
-
+import tqdm
 import os
 import sys
 from PIL import Image
@@ -44,9 +44,9 @@ def main(args):
     counter_annotations = 0
     counter_images = 0
 
-    for i in range(len(sub_directories)):
+    for i in tqdm.tqdm(range(len(sub_directories))):
         # annotator = sub_directories[i].rsplit("/",1)[1].split("\\")[0] #get the annotator name
-        sub_directory = sub_directories[i].rsplit("/",1)[1] #get the sub folders for each annotator 
+        sub_directory = sub_directories[i].rsplit("/", 1)[1] #get the sub folders for each annotator
 
         print("The current subdirectory:", sub_directory)
 
@@ -65,8 +65,3 @@ if __name__ == '__main__':
     ### Get the arguments 
     args = get_args_parse()
     main(args)
-
-
-        
-        
-
