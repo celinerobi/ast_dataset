@@ -86,9 +86,9 @@ def main(args):
     #                                                                            args.xml_folder_name)
 
     # Generate tile level XMLs
-    #tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
-    #os.makedirs(tiles_xml_dir, exist_ok=True)
-    #fc.generate_tile_xmls(args.parent_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
+    tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
+    os.makedirs(tiles_xml_dir, exist_ok=True)
+    fc.generate_tile_xmls(args.parent_dir, args.tile_dir, tiles_xml_dir, args.item_dim)
 
     # Merge neighboring bounding boxes within each tile
     # References:
