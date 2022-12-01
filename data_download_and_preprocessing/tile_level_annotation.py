@@ -82,8 +82,8 @@ def main(args):
 
     # Generate table of characteristics for tiles/images
     # change where they are written
-    #tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
-    #                                                                            args.xml_folder_name)
+    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
+                                                                                args.xml_folder_name)
 
     # Generate tile level XMLs
     tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
@@ -99,7 +99,7 @@ def main(args):
     # Add in state
     tile_database = fc.identify_state_name_for_each_state(args.state_gpd_path, tile_database)
     # check issues in state list
-    #print(len(state_list[state_list==None]))
+    #print(len(tile_database[state_list==None]))
     # state_list = state_list[state_list==None]
     # np.unique(state_list)
 
