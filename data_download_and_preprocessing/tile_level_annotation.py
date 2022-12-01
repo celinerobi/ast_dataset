@@ -66,7 +66,7 @@ def get_args_parse():
                         help='path to directory which holds tile level annotation and related files.')
     parser.add_argument('--tile_level_annotation_dataset_filename', type=str, default="tile_level_annotation",
                         help='File name of tile level annotation')
-    parser.add_argument('--item_dim', type=int, default=int(512),
+    parser.add_argument('--item_dim', type=int, default=512,
                         help='Dimensions of image (assumed sq)')
     parser.add_argument('--distance_limit', type=int, default=int(5),
                         help='The maximum pixel distance between bbox adjacent images, to merge')
@@ -79,11 +79,11 @@ def get_args_parse():
 
 
 def main(args):
-
+    print(args.item_dim)
     # Generate table of characteristics for tiles/images
     # change where they are written
-    tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
-                                                                                args.xml_folder_name)
+    #tile_characteristics, image_characteristics = fc.image_tile_characteristics(args.parent_dir, args.tile_dir,
+    #                                                                            args.xml_folder_name)
 
     # Generate tile level XMLs
     tiles_xml_dir = os.path.join(args.tile_level_annotation_dir, "tiles_xml")
