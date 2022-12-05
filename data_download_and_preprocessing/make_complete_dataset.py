@@ -32,6 +32,7 @@ def get_args_parse():
     args = parser.parse_args()
     return args
 
+
 def main(args):
     ### Get the subdirectories within the subdirectories (the folders from each of the allocations)
     sub_directories = list()
@@ -60,6 +61,7 @@ def main(args):
         counter_annotations += annotations #count the number of annotations
         counter_images += images #count the number of images
         print(counter_annotations, counter_images) #print the counters
+
 
 if __name__ == '__main__':
     ### Get the arguments 
