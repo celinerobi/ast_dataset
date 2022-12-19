@@ -58,8 +58,6 @@ def get_args_parse():
         description='This script adds a subdirectory of xmls to correct possible inconsistent labels')
     parser.add_argument('--parent_dir', type=str, default=None,
                         help='path to parent directory, holding the img/annotation sub directories.')
-    parser.add_argument('--annotation_dir', type=str, default="chips_positive_corrected_xml",
-                        help="name of folder in complete dataset directory that contains annotations")
     parser.add_argument('--tile_dir', type=str, default=None,
                         help='path to directory holding tiles.')
     parser.add_argument('--tile_level_annotation_dir', type=str, default=None,

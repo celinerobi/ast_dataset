@@ -423,7 +423,7 @@ def transform_point_utm_to_wgs84(utm_proj, utm_xcoord, utm_ycoord):
     #transform utm into wgs84 point
     project = pyproj.Transformer.from_crs(utm, wgs84, always_xy=True).transform
     wgs84_pt = transform(project, utm_pt)
-    return(wgs84_pt.x, wgs84_pt.y)
+    return wgs84_pt.x, wgs84_pt.y
 
 ###################################################################################################################
 ##########################   Create dataframe of Image and Tile Characteristics  ##################################
@@ -741,7 +741,7 @@ def add_objects(xml_directory, tile_name, obj_class, obj_truncated, obj_difficul
     obj.insert(1, pose)
     
     truncated = et.Element("truncated")
-    truncated.text = str(obj_truncated) #
+    truncated.text = str(obj_truncated)
     obj.insert(2, truncated)
 
     difficult = et.Element("difficult")
@@ -774,43 +774,50 @@ def add_objects(xml_directory, tile_name, obj_class, obj_truncated, obj_difficul
 
 
 def generate_tile_xmls(images_and_xmls_by_tile_dir, tile_dir, xml_folder_name, tiles_xml_dir, item_dim):
+    """
+    Args:
+        images_and_xmls_by_tile_dir(str): path to directory containing folders holding annotations and images
+        tile_dir(str): path to directory containing tiles
+        
+    Returns:
+        object:
+    """
     tile_names = os.listdir(images_and_xmls_by_tile_dir)
     for tile_name in tqdm.tqdm(tile_names):
         tile_name_ext = tile_name + ".tif"
         #get tile dimensions ##replace with information from tile characteristics
         da = rioxarray.open_rasterio(os.path.join(tile_dir, tile_name_ext))
         tile_band, tile_height, tile_width = da.shape[0], da.shape[1], da.shape[2]
-        #specify image/xml paths for each tile
-        positive_image_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, "chips_positive")
+        #specify xml paths for each tile
         positive_xml_dir = os.path.join(images_and_xmls_by_tile_dir, tile_name, xml_folder_name)
         #load a list of images/xmls for each tile
-        positive_images = os.listdir(positive_image_dir)
         positive_xmls = os.listdir(positive_xml_dir)
                        
-        for index, chip_xml in enumerate(positive_xmls):
-            #identify rows and columns
-            chip_name = os.path.splitext(chip_xml)[0]
-            y, x = chip_name.split("_")[-2:] #name of tif with the extension removed; y=row;x=col
-            y = int(y)
-            x = int(x)
-            minx = x*item_dim
-            miny = y*item_dim
-            #load each xml
+        for index, chip_xml in enumerate(positive_xmls): #iterate over positive xmls
+            #load each chipped image xml
             tree = et.parse(os.path.join(positive_xml_dir, chip_xml))
             root = tree.getroot()
+
             #create the tile xml
             if index == 0:
                 resolution = root.find('resolution').text
                 capture_date = root.find('capture_date').text
-                create_tile_xml(tile_name, tiles_xml_dir, resolution, capture_date,
-                                tile_width, tile_height, tile_band)
+                create_tile_xml(tile_name, tiles_xml_dir, resolution, capture_date, tile_width, tile_height, tile_band)
+
+            #identify rows and columns
+            chip_name = os.path.splitext(chip_xml)[0]
+            y, x = chip_name.split("_")[-2:] #name of tif with the extension removed; y=row;x=col
+            # Each chip xml goes from 1 - 512, specify the "0", or the end point of the last xml
+            minx = int(x)*item_dim
+            miny = int(y)*item_dim
+
             #add the bounding boxes
             for obj in root.iter('object'):
                 xmlbox = obj.find('bndbox')
-                obj_xmin = str(int(xmlbox.find('xmin').text) + minx)
-                obj_xmax = str(int(xmlbox.find('xmax').text) + minx)
-                obj_ymin = str(int(xmlbox.find('ymin').text) + miny)
-                obj_ymax = str(int(xmlbox.find('ymax').text) + miny)
+                obj_xmin = str(minx + int(xmlbox.find('xmin').text))
+                obj_xmax = str(minx + int(xmlbox.find('xmax').text))
+                obj_ymin = str(miny + int(xmlbox.find('ymin').text))
+                obj_ymax = str(miny + int(xmlbox.find('ymax').text))
                 add_objects(tiles_xml_dir, tile_name, obj.find('name').text, obj.find('truncated').text,
                             obj.find('difficult').text, chip_name, obj_xmin, obj_ymin, obj_xmax, obj_ymax)
 
@@ -828,9 +835,9 @@ def merge_boxes(bbox1, bbox2):
 
     """
     return [min(bbox1[0], bbox2[0]), 
-         min(bbox1[1], bbox2[1]), 
-         max(bbox1[2], bbox2[2]),
-         max(bbox1[3], bbox2[3])]
+            min(bbox1[1], bbox2[1]),
+            max(bbox1[2], bbox2[2]),
+            max(bbox1[3], bbox2[3])]
 
 
 def calc_sim(bbox1, bbox2, dist_limit):
@@ -853,16 +860,16 @@ def calc_sim(bbox1, bbox2, dist_limit):
         
     #define distance if one object is inside the other
     if (bbox2_xmin <= bbox1_xmin) and (bbox2_ymin <= bbox1_ymin) and (bbox2_xmax >= bbox1_xmax) and (bbox2_ymax >= bbox1_ymax):
-        return(True)
+        return True
     elif (bbox1_xmin <= bbox2_xmin) and (bbox1_ymin <= bbox2_ymin) and (bbox1_xmax >= bbox2_xmax) and (bbox1_ymax >= bbox2_ymax):
-        return(True)
+        return True
     #determine if the bboxes are suffucuently close to each other 
     elif (x_dist <= dist_limit) and (abs(bbox2_ymin-bbox1_ymin) <= dist_limit*3) and (abs(bbox2_ymax-bbox1_ymax) <= dist_limit*3):
-        return(True)
+        return True
     elif (y_dist <= dist_limit) and (abs(bbox2_xmin-bbox1_xmin) <= dist_limit*3) and (abs(bbox2_xmax-bbox1_xmax) <= dist_limit*3):
-        return(True)
+        return True
     else: 
-        return(False)
+        return False
 
 
 def merge_algo(characteristics, bboxes, dist_limit):
@@ -888,7 +895,7 @@ def merge_algo(characteristics, bboxes, dist_limit):
                         chip_names_1 = np.array([char1[0]])
                     if type(char2[0]) == str:
                         chip_names_2 = np.array([char2[0]])
-                    chip_names = np.concatenate((chip_names_1, chip_names_2),axis=0)
+                    chip_names = np.concatenate((chip_names_1, chip_names_2), axis=0)
                     chip_names = np.unique(chip_names).tolist()
                 else:
                     chip_names = np.unique(char1[0]).tolist()  #if the chip_names are not the same
@@ -919,13 +926,13 @@ def calculate_diameter(bbox, resolution = 0.6):
     obj_width = obj_xmax - obj_xmin
     obj_height = obj_ymax - obj_ymin
     diameter = min(obj_width, obj_height) * resolution #meter
-    return(diameter)
+    return diameter
 
 
-def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list = None, distance_limit=5):
+def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list=None, distance_limit=5):
     # https://stackoverflow.com/questions/55593506/merge-the-bounding-boxes-near-by-into-one
     #specify tiles_xml_list
-    if tiles_xml_list is None: #if tiles_xml_list not provided, specify the tiles xml list
+    if tiles_xml_list is None: # if tiles_xml_list not provided, specify the tiles xml list
         tiles_xml_list = os.listdir(tiles_xml_dir)
     #lists for geosons/geodatabase
     tile_names = []
@@ -945,16 +952,16 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
     polygon_vertices_lon_lat = []
     utm_projection = []
     diameter = []
-    for tile_xml in tqdm.tqdm(tiles_xml_list): #iterate over tiles
-        #save bboxes and characteristics
+    for tile_xml in tqdm.tqdm(tiles_xml_list): # iterate over tiles
+        # save bboxes and characteristics
         trunc_diff_objs_bboxes = []
         trunc_diff_objs_characteristics = []
         remaining_objs_bboxes = []
         remaining_objs_characteristics = []
-        #get tilename/tile xml path
+        # get tilename/tile xml path
         tile_name = os.path.splitext(tile_xml)[0]
         tile_xml_path = os.path.join(tiles_xml_dir, tile_xml)
-        #load tile characteristics 
+        # load tile characteristics
         tile_characteristics_subset = tile_characteristics[tile_characteristics.loc[:,"tile_name"] == tile_name]
         tile_width = tile_characteristics_subset["tile_widths"].values[0]
         tile_height = tile_characteristics_subset["tile_heights"].values[0]
@@ -966,7 +973,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
                                       tile_characteristics_subset["max_utmy"].values[0],
                                       tile_height)
         utm_proj = tile_characteristics_subset["utm_projection"].values[0]
-        #load each xml
+        # load each xml
         tree = et.parse(tile_xml_path)
         root = tree.getroot()
         for obj in root.iter('object'):
@@ -979,7 +986,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
                 obj_xmax = tile_width
             if int(obj_ymax) > tile_height:
                 obj_ymax = tile_height
-            if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1): #get truncated bboxes/characteristics
+            if (int(obj.find('difficult').text) == 1) or (int(obj.find('truncated').text) == 1): # get truncated bboxes/characteristics
                 trunc_diff_objs_bboxes.append([obj_xmin, obj_ymin, obj_xmax, obj_ymax])
                 trunc_diff_objs_characteristics.append([obj.find('chip_name').text, obj.find('name').text, obj.find('pose').text, 
                                                         obj.find('truncated').text, obj.find('difficult').text])
@@ -993,13 +1000,14 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
         trunc_diff_objs_bboxes = trunc_diff_objs_bboxes.tolist()
         merged_bools, merged_characteristics, merged_bboxes =  merge_algo(trunc_diff_objs_characteristics,
                                                                       trunc_diff_objs_bboxes, distance_limit) #merge
+
         for j, (merged_bool, char, bbox) in enumerate(zip(merged_bools, merged_characteristics, merged_bboxes)):
             tile_names.append(tile_name)
             chip_names.append(char[0])
             object_class.append(char[1])
-            #state whether bbox were merged
+            # state whether bbox were merged
             merged_bbox.append(merged_bool)
-            #pixel coordiantes, 0 indexed
+            # pixel coordinates, 0 indexed
             minx = bbox[0] - 1
             miny = bbox[1] - 1
             maxx = bbox[2] - 1
@@ -1008,8 +1016,8 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             miny_polygon_pixels.append(miny)
             maxx_polygon_pixels.append(maxx)
             maxy_polygon_pixels.append(maxy)
-            polygon_vertices_pixels.append([(minx,miny), (minx,maxy), (maxx,maxy), (maxx,miny)])
-            #geospatial data          
+            polygon_vertices_pixels.append([(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)])
+            # geospatial data
             utm_projection.append(utm_proj)
             min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[minx], tile_utmy_array[miny])
             max_lon, max_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[maxx], tile_utmy_array[maxy])
@@ -1017,8 +1025,9 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             nw_corner_polygon_lat.append(min_lat)
             se_corner_polygon_lon.append(max_lon)
             se_corner_polygon_lat.append(max_lat)
-            polygon_vertices_lon_lat.append([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)])
-            geometry.append(Polygon([(min_lon,min_lat),(min_lon,max_lat),(max_lon,max_lat),(max_lon,min_lat)]))
+            polygon_vertices_lon_lat.append([(min_lon, min_lat), (min_lon, max_lat),
+                                             (max_lon, max_lat), (max_lon, min_lat)])
+            geometry.append(Polygon([(min_lon, min_lat), (min_lon, max_lat), (max_lon, max_lat), (max_lon, min_lat)]))
             #calculate diameter
             diameter.append(calculate_diameter(bbox))
             
@@ -1029,14 +1038,15 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             tile_names.append(tile_name)
             chip_names.append(char[0])
             object_class.append(char[1])
-            #state whether bbox were merged
+            # state whether bbox were merged
             merged_bbox.append(merged_bool)
-            #pixel coordiantes 
+            # pixel coordinates
             minx_polygon_pixels.append(bbox[0])
             miny_polygon_pixels.append(bbox[1])
             maxx_polygon_pixels.append(bbox[2])
             maxy_polygon_pixels.append(bbox[3])
-            polygon_vertices_pixels.append([(bbox[0],bbox[1]), (bbox[0],bbox[3]), (bbox[2],bbox[3]), (bbox[2],bbox[1])])
+            polygon_vertices_pixels.append([(bbox[0], bbox[1]), (bbox[0], bbox[3]),
+                                            (bbox[2], bbox[3]), (bbox[2], bbox[1])])
             #geospatial data
             utm_projection.append(utm_proj)
             min_lon, min_lat = transform_point_utm_to_wgs84(utm_proj, tile_utmx_array[bbox[0]-1], tile_utmy_array[bbox[1]-1])
@@ -1045,7 +1055,7 @@ def merge_tile_annotations(tile_characteristics, tiles_xml_dir, tiles_xml_list =
             nw_corner_polygon_lat.append(min_lat)
             se_corner_polygon_lon.append(max_lon)
             se_corner_polygon_lat.append(max_lat)
-            polygon_vertices_lon_lat.append([(min_lon,min_lat), (min_lon,max_lat), (max_lon,max_lat), (max_lon,min_lat)])
+            polygon_vertices_lon_lat.append([(min_lon,min_lat), (min_lon,max_lat), (max_lon, max_lat), (max_lon,min_lat)])
             geometry.append(Polygon([(min_lon,min_lat), (min_lon,max_lat), (max_lon,max_lat), (max_lon,min_lat)]))
             #calculate diameter
             diameter.append(calculate_diameter(bbox))
